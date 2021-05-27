@@ -1,0 +1,30 @@
+modLoader="javafml" #mandatory
+loaderVersion="[36,)"
+license="MIT"
+
+[[mods]]
+modId="milten" #mandatory
+
+version="1.16.5-0.1.0-alpha" #mandatory
+# A display name for the mod
+displayName="Milten" #mandatory
+
+#logoFile="logo.png" #optional
+
+credits="Thanks to Wolfgang Hochleitner and Michael Lankes"
+authors="Tobias Filler, Lukas Hartinger"
+description='''
+Milten is a mod that adds a teleportation system to Minecraft. The system is heavily inspired by the Game Gothic '''
+
+[[dependencies.nomoretorchspam]]
+modId="forge"
+mandatory=true
+versionRange="[36,)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.nomoretorchspam]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.16.5,1.17)"
+ordering="NONE"
+side="BOTH"
