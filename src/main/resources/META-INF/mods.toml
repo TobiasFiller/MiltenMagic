@@ -14,7 +14,7 @@ displayName="Milten" #mandatory
 credits="Thanks to Wolfgang Hochleitner and Michael Lankes"
 authors="Tobias Filler, Lukas Hartinger"
 description='''
-Milten is a mod that adds a teleportation system to Minecraft. The system is heavily inspired by the Game Gothic '''
+Milten is a mod that adds a teleportation system to Minecraft. The system is heavily inspired by the game Gothic '''
 
 [[dependencies.nomoretorchspam]]
 modId="forge"

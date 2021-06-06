@@ -1,0 +1,6 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "milten:items/teleportation_scroll"
+  }
+}

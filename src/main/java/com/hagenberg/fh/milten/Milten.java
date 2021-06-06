@@ -1,9 +1,11 @@
 package com.hagenberg.fh.milten;
 
+import com.hagenberg.fh.milten.core.init.ItemRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
@@ -26,6 +28,9 @@ public class Milten {
     public static final String Mod_ID = "milten";
 
     public Milten() {
+        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        ItemRegistry.ITEMS.register(bus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);

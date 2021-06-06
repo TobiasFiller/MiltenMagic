@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "#C#",
+        "CEC",
+        "#C#"
+    ],
+    "key": {
+        "#": {
+            "item": "minecraft:end_stone"
+        },
+        "C": {
+            "item": "minecraft:chorus_fruit"
+        },
+        "E": {
+            "item": "milten:teleportation_crystal"
+        }
+    },
+    "result": {
+        "item": "milten:teleportation_rune",
+        "count": 1
+    }
+}
