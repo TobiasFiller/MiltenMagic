@@ -1,6 +1,7 @@
 package com.hagenberg.fh.milten.core.init;
 
 import com.hagenberg.fh.milten.Milten;
+import com.hagenberg.fh.milten.common.item.TeleportationRuneItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraftforge.fml.RegistryObject;
@@ -16,8 +17,8 @@ public class ItemRegistry {
             ITEMS.register("teleportation_crystal",()-> new Item(new Item.Properties().group(ItemGroup.TRANSPORTATION)));
 
     public static final RegistryObject<Item> TELEPORTATION_SCROLL =
-            ITEMS.register("teleportation_scroll",()-> new Item(new Item.Properties().group(ItemGroup.TRANSPORTATION)));
+            ITEMS.register("teleportation_scroll",()->new TeleportationRuneItem(true));
 
     public static final RegistryObject<Item> TELEPORTATION_RUNE =
-            ITEMS.register("teleportation_rune",()-> new Item(new Item.Properties().group(ItemGroup.TRANSPORTATION)));
+            ITEMS.register("teleportation_rune",()-> new TeleportationRuneItem(false));
 }
