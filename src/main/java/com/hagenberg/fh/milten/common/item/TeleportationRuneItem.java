@@ -27,6 +27,7 @@ public class TeleportationRuneItem extends Item {
 
     private int max;
     private boolean set = false;
+    private boolean error = false;
 
     public TeleportationRuneItem(boolean _oneUse) {
         super(new Item.Properties().group(ItemGroup.TRANSPORTATION).maxStackSize(_oneUse ? 64 : 1));
@@ -35,6 +36,7 @@ public class TeleportationRuneItem extends Item {
 
     @Override
     public ActionResultType onItemUse(ItemUseContext context) {
+        error = false;
 
         World world = context.getWorld();
         PlayerEntity playerIn = context.getPlayer();
@@ -57,6 +59,7 @@ public class TeleportationRuneItem extends Item {
 
 
             if (!world.isRemote) {
+                //TODO implement createPlatform at the right point
                 createPlatform(offPos,world,playerIn);
                 playerIn.sendStatusMessage(new StringTextComponent(TextFormatting.GREEN + "This crystal is linked at:" + " " +
                         tags.getInt("x") + ", " +
@@ -136,35 +139,50 @@ public class TeleportationRuneItem extends Item {
     private void createPlatform(BlockPos start, World worldIn,PlayerEntity PlayerIn){
         if(!worldIn.isRemote){
             if (checkLapis(start,worldIn)){
-                //finds the corners of the lapis rect
-                BlockPos NorthWestL = searchForLapisCorners(start,worldIn, -1, -1,true);
-                BlockPos SouthEastL = searchForLapisCorners(start,worldIn,1,1,true);
+                //finds the corners of the lapis rect first nw then se
+                BlockPos NorthWestLN = searchForLapisCorners(start,worldIn, -1, -1,true);
+                BlockPos SouthEastLN = searchForLapisCorners(start,worldIn,1,1,true);
                 if(Milten.Debug) {
-                    out.info("NW: " + NorthWestL.toString());
-                    out.info("SE: " + SouthEastL.toString());
+                    out.info("NW: " + NorthWestLN.toString());
+                    out.info("SE: " + SouthEastLN.toString());
                 }
-                NorthWestL = searchForLapisCorners(start,worldIn, -1, -1,false);
-                SouthEastL = searchForLapisCorners(start,worldIn,1,1,false);
+                //finds the coerners of the lapis rect first se then nw
+                BlockPos NorthWestLE = searchForLapisCorners(start,worldIn, -1, -1,false);
+                BlockPos SouthEastLE = searchForLapisCorners(start,worldIn,1,1,false);
                 if(Milten.Debug) {
-                    out.info("NW: " + NorthWestL.toString());
-                    out.info("SE: " + SouthEastL.toString());
+                    out.info("NW: " + NorthWestLE.toString());
+                    out.info("SE: " + SouthEastLE.toString());
                 }
-                 BlockPos [] Corners1 = createCorners(NorthWestL, SouthEastL,worldIn);
-                 if(Corners1 == null){
-                     PlatformError(PlayerIn);
-                 }
+                if(NorthWestLE!=NorthWestLN||SouthEastLE!= SouthEastLN){
+                    PlatformError(PlayerIn);
+                    return;
+                }
+                BlockPos[] corners = createCorners(NorthWestLE,SouthEastLE,worldIn);
+                if(corners == null){
+                    PlatformError(PlayerIn);
+                    return;
+                }
+                //TODO check outer ring of chiseled stone bricks
 
+                //TODO change the platform to a teleportation one
             }
-            PlayerIn.sendStatusMessage(new StringTextComponent(TextFormatting.RED +
-                    "Rightclick a rectangular Platform made of Lapis Blocks in the middle, surrounded on all sides by Chiseled Stone Bricks to create a Teleportation Platform")
-                    ,false);
+            else{
+                if(!error){
+                    PlayerIn.sendStatusMessage(new StringTextComponent(TextFormatting.RED +
+                                    "Use on a rectangular platform made of Lapislazuli blocks in the middle, surrounded on all sides by Chiseled stone bricks to create a Teleportation platform")
+                            ,false);
+                    error = true;
+                }
             }
         }
+    }
 
         private void PlatformError(PlayerEntity PlayerIn){
+        if(!error)
             PlayerIn.sendStatusMessage(new StringTextComponent(TextFormatting.RED +
                             "The Platform needs to be a solid Rectangle surrounded with Chiseled Stone Bricks")
                     ,false);
+        error = true;
             return;
         }
 
