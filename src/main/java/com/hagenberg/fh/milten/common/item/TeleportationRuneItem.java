@@ -1,5 +1,6 @@
 package com.hagenberg.fh.milten.common.item;
 
+import com.hagenberg.fh.milten.Milten;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,7 +25,7 @@ public class TeleportationRuneItem extends Item {
     boolean oneUse;
     private final int maxSize = 15;
 
-    private int maxX;
+    private int max;
     private boolean set = false;
 
     public TeleportationRuneItem(boolean _oneUse) {
@@ -136,34 +137,48 @@ public class TeleportationRuneItem extends Item {
         if(!worldIn.isRemote){
             if (checkLapis(start,worldIn)){
                 //finds the corners of the lapis rect
-                BlockPos NorthWestL = searchForLapisCorners(start,worldIn, -1, -1);
-                BlockPos SouthEastL = searchForLapisCorners(start,worldIn,1,1);
-                out.info("NW: " + NorthWestL.toString());
-                out.info("SE: " + SouthEastL.toString());
-                 BlockPos [] Corners = createCorners(NorthWestL, SouthEastL,worldIn);
-                 if(Corners == null){
-                     PlayerIn.sendStatusMessage(new StringTextComponent(TextFormatting.RED +
-                             "The Platform needs to be a solid Rectangle surrounded with Chiseled Stone Bricks")
-                             ,true);
-                     return;
+                BlockPos NorthWestL = searchForLapisCorners(start,worldIn, -1, -1,true);
+                BlockPos SouthEastL = searchForLapisCorners(start,worldIn,1,1,true);
+                if(Milten.Debug) {
+                    out.info("NW: " + NorthWestL.toString());
+                    out.info("SE: " + SouthEastL.toString());
+                }
+                NorthWestL = searchForLapisCorners(start,worldIn, -1, -1,false);
+                SouthEastL = searchForLapisCorners(start,worldIn,1,1,false);
+                if(Milten.Debug) {
+                    out.info("NW: " + NorthWestL.toString());
+                    out.info("SE: " + SouthEastL.toString());
+                }
+                 BlockPos [] Corners1 = createCorners(NorthWestL, SouthEastL,worldIn);
+                 if(Corners1 == null){
+                     PlatformError(PlayerIn);
                  }
+
             }
             PlayerIn.sendStatusMessage(new StringTextComponent(TextFormatting.RED +
                     "Rightclick a rectangular Platform made of Lapis Blocks in the middle, surrounded on all sides by Chiseled Stone Bricks to create a Teleportation Platform")
-                    ,true);
+                    ,false);
+            }
         }
-    }
+
+        private void PlatformError(PlayerEntity PlayerIn){
+            PlayerIn.sendStatusMessage(new StringTextComponent(TextFormatting.RED +
+                            "The Platform needs to be a solid Rectangle surrounded with Chiseled Stone Bricks")
+                    ,false);
+            return;
+        }
 
 
-    private BlockPos searchForLapisCorners(BlockPos toCheck, World worldIn, int up, int left){
-        if(set && toCheck.getX() >= maxX && left > 0 ){
+
+    private BlockPos searchForLapisCorners(BlockPos toCheck, World worldIn, int up, int left, boolean nsew){
+        if(nsew &&set && toCheck.getX() >= max && left > 0 ){
             /*out.info("/////// Tocheck X is too big" + toCheck.toString());
             out.info("maxX: "+ maxX);
             out.info("left: " + left);
              */
             return null;
         }
-        else if(set && toCheck.getX() <= maxX && left < 0){
+        else if(nsew && set && toCheck.getX() <= max && left < 0){
             /*out.info("|||||||| Tocheck X is too small" + toCheck.toString());
             out.info("maxX: "+ maxX);
             out.info("left: " + left);
@@ -171,16 +186,40 @@ public class TeleportationRuneItem extends Item {
              */
             return null;
         }
+        else if(!nsew && set && toCheck.getZ() >= max && left > 0){
+            return null;
+        }
+        else if(!nsew && set && toCheck.getZ() <= max && left < 0){
+            return null;
+        }
         //out.info("Checking at: " + toCheck.toString());
         if(checkLapis(toCheck,worldIn)){
-            BlockPos checked = searchForLapisCorners(toCheck.add(left,0,0),worldIn,up,left);
+            BlockPos checked;
+            if(nsew){
+                checked = searchForLapisCorners(toCheck.add(left,0,0),worldIn,up,left,nsew);
+            }
+            else {
+                checked = searchForLapisCorners(toCheck.add(0,0,up),worldIn,up,left,nsew);
+            }
             if(checked == null){
-                if(!set) {
+                if(!set && nsew) {
                     set = true;
-                    maxX = toCheck.getX() + left;
-                    //out.info("MAX SET TO: "+maxX);
+                    max = toCheck.getX() + left;
+                    if(Milten.Debug)
+                        out.info("MAX SET TO: "+max);
                 }
-                checked = searchForLapisCorners(toCheck.add(0,0,up),worldIn,up,left);
+                else if(!set && !nsew){
+                    set = true;
+                    max = toCheck.getZ() + up;
+                    if (Milten.Debug)
+                        out.info("MAX SET TO: " + max);
+                }
+                if(nsew){
+                    checked = searchForLapisCorners(toCheck.add(0,0,up),worldIn,up,left,nsew);
+                }
+                else{
+                    checked = searchForLapisCorners(toCheck.add(left,0,0),worldIn,up,left,nsew);
+                }
 
                 if(checked==null){
                     set = false;
@@ -211,17 +250,20 @@ public class TeleportationRuneItem extends Item {
     }
 
     private BlockPos[] createCorners(BlockPos nw, BlockPos se,World worldIn){
-        BlockPos [] out = {
+        BlockPos [] output = {
                 nw.add(-1,0,-1),
                 new BlockPos(se.getX()+1,nw.getY(),nw.getZ()+1),
                 se.add(1,0,1),
                 new BlockPos(nw.getX()-1,nw.getY(),se.getZ()-1)
         };
-        for(BlockPos pos : out){
+        for(BlockPos pos : output){
             if (!worldIn.getBlockState(pos).getBlock().equals(Blocks.CHISELED_STONE_BRICKS)){
+                if(Milten.Debug){
+                    out.info("outputting null to corners");
+                }
                 return null;
             }
         }
-        return out;
+        return output;
     }
 }

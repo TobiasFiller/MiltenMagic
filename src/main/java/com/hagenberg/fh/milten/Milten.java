@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @Mod(Milten.Mod_ID)
 public class Milten {
     // Directly reference a log4j logger.
+    public static final boolean Debug = true;
     private static final Logger LOGGER = LogManager.getLogger();
     public static final String Mod_ID = "milten";
 
