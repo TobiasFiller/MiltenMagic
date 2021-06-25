@@ -23,7 +23,6 @@ public class TeleportationRuneItem extends Item {
 
     private Logger out = Logger.getLogger("SEARCHCORNERS");
     boolean oneUse;
-    private final int maxSize = 15;
 
     private int max;
     private boolean set = false;
@@ -53,9 +52,6 @@ public class TeleportationRuneItem extends Item {
             tags.putInt("z", offPos.getZ());
             //tags.putInt("dim", 0); //getDimension dose not work with player and or world
             tags.putFloat("direction", playerIn.rotationYaw);
-
-
-
 
 
             if (!world.isRemote) {
@@ -200,7 +196,6 @@ public class TeleportationRuneItem extends Item {
             /*out.info("|||||||| Tocheck X is too small" + toCheck.toString());
             out.info("maxX: "+ maxX);
             out.info("left: " + left);
-
              */
             return null;
         }
