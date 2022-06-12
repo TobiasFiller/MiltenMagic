@@ -1,37 +1,31 @@
 package com.hagenberg.fh.milten;
 
+import com.hagenberg.fh.milten.core.init.BlockRegistry;
 import com.hagenberg.fh.milten.core.init.ItemRegistry;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+import com.hagenberg.fh.milten.core.init.ParticleRegistry;
+import com.hagenberg.fh.milten.core.init.TileEntityRegistry;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.stream.Collectors;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(Milten.Mod_ID)
 public class Milten {
     // Directly reference a log4j logger.
     public static final boolean Debug = true;
-    private static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
     public static final String Mod_ID = "milten";
 
     public Milten() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ItemRegistry.ITEMS.register(bus);
+        BlockRegistry.BLOCKS.register(bus);
+        ParticleRegistry.PARTICLES.register(bus);
+        TileEntityRegistry.TILE_ENTITIES.register(bus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
