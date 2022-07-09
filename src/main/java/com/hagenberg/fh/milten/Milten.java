@@ -3,7 +3,6 @@ package com.hagenberg.fh.milten;
 import com.hagenberg.fh.milten.core.init.BlockRegistry;
 import com.hagenberg.fh.milten.core.init.ItemRegistry;
 import com.hagenberg.fh.milten.core.init.ParticleRegistry;
-import com.hagenberg.fh.milten.core.init.TileEntityRegistry;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -25,7 +24,6 @@ public class Milten {
         ItemRegistry.ITEMS.register(bus);
         BlockRegistry.BLOCKS.register(bus);
         ParticleRegistry.PARTICLES.register(bus);
-        TileEntityRegistry.TILE_ENTITIES.register(bus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);

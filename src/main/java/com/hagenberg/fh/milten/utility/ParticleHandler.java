@@ -14,6 +14,6 @@ public class ParticleHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void registerParticle(ParticleFactoryRegisterEvent event) {
-        Minecraft.getInstance().particles.registerFactory(ParticleRegistry.TELEPORTATION_PARTICLE.get(), TeleportationParticle.Factory::new);
+        Minecraft.getInstance().particleEngine.register(ParticleRegistry.TELEPORTATION_PARTICLE.get(), TeleportationParticle.Provider::new);
     }
 }

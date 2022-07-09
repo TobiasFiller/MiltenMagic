@@ -1,53 +1,55 @@
 package com.hagenberg.fh.milten.common.particle;
 
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particles.BasicParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 @OnlyIn(Dist.CLIENT)
 public class TeleportationParticle extends PortalParticle {
-    private TeleportationParticle(ClientWorld world, double x, double y, double z, double motionX, double motionY, double motionZ){
+
+    private TeleportationParticle(ClientLevel world, double x, double y, double z, double motionX, double motionY, double motionZ){
         super(world, x, y, z, motionX, motionY, motionZ);
-        this.particleScale = (float)((double)this.particleScale * 1.5D);
-        this.maxAge = (int)(Math.random() * 2.0D) + 30;
-        float f = this.rand.nextFloat() * 0.6F + 0.4F;
-        this.particleRed = f * 0.25F;
-        this.particleGreen = f * 0.35F;
-        this.particleBlue = f * 0.9F;
+        this.quadSize = (float)((double)this.quadSize * 1.5D);
+        this.lifetime = (int)(Math.random() * 2.0D) + 30;
+        float f = this.random.nextFloat() * 0.6F + 0.4F;
+        this.rCol = f * 0.25F;
+        this.gCol = f * 0.35F;
+        this.bCol = f * 0.9F;
     }
 
     public float getScale(float scaleFactor) {
-        float f = 1.0F - ((float)this.age + scaleFactor) / ((float)this.maxAge * 1.5F);
-        return this.particleScale * f;
+        float f = 1.0F - ((float)this.age + scaleFactor) / ((float)this.lifetime * 1.5F);
+        return this.quadSize * f;
     }
 
     public void tick() {
-        this.prevPosX = this.posX;
-        this.prevPosY = this.posY;
-        this.prevPosZ = this.posZ;
-        if (this.age++ >= this.maxAge) {
-            this.setExpired();
+        this.xo = this.x;
+        this.yo = this.y;
+        this.zo = this.z;
+        if (this.age++ >= this.lifetime) {
+            this.remove();
         } else {
-            float f = (float)this.age / (float)this.maxAge;
-            this.posX += this.motionX * (double)f;
-            this.posY += this.motionY * (double)f;
-            this.posZ += this.motionZ * (double)f;
+            float f = (float)this.age / (float)this.lifetime;
+            this.x += this.xd * (double)f;
+            this.y += this.yd * (double)f;
+            this.z += this.zd * (double)f;
         }
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Factory implements IParticleFactory<BasicParticleType> {
-        private final IAnimatedSprite spriteSet;
+    public static class Provider implements ParticleProvider<SimpleParticleType> {
+        private final SpriteSet sprite;
 
-        public Factory(IAnimatedSprite spriteSet) {
-            this.spriteSet = spriteSet;
+        public Provider(SpriteSet p_107570_) {
+            this.sprite = p_107570_;
         }
 
-        public Particle makeParticle(BasicParticleType typeIn, ClientWorld worldIn, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-            TeleportationParticle teleportationParticle = new TeleportationParticle(worldIn, x, y, z, xSpeed, ySpeed, zSpeed);
-            teleportationParticle.selectSpriteRandomly(this.spriteSet);
+        public Particle createParticle(@NotNull SimpleParticleType particleType, @NotNull ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+            TeleportationParticle teleportationParticle = new TeleportationParticle(level, x, y, z, xSpeed, ySpeed, zSpeed);
+            teleportationParticle.pickSprite(this.sprite);
             return teleportationParticle;
         }
     }
