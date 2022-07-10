@@ -2,7 +2,7 @@ package net.tobiasfiller.miltenmagic.core.registry;
 
 import net.tobiasfiller.miltenmagic.MiltenMagic;
 import net.tobiasfiller.miltenmagic.common.item.CostumCreativeModeTab;
-import net.tobiasfiller.miltenmagic.common.item.TeleportationRuneItem;
+import net.tobiasfiller.miltenmagic.common.item.TeleportationSpellItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
@@ -15,10 +15,10 @@ public class ItemRegistry {
             DeferredRegister.create(ForgeRegistries.ITEMS, MiltenMagic.MOD_ID);
 
     public static final RegistryObject<Item> TELEPORTATION_SCROLL =
-            ITEMS.register("teleportation_scroll",()->new TeleportationRuneItem(true));
+            ITEMS.register("teleportation_scroll",()->new TeleportationSpellItem(true));
 
     public static final RegistryObject<Item> TELEPORTATION_RUNE =
-            ITEMS.register("teleportation_rune",()-> new TeleportationRuneItem(false));
+            ITEMS.register("teleportation_rune",()-> new TeleportationSpellItem(false));
 
     public static final RegistryObject<Item> TELEPORTATION_PLATFORM = ITEMS.register("teleportation_platform", () -> new BlockItem(
             BlockRegistry.TELEPORTATION_PLATFORM_BLOCK.get(),new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));

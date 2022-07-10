@@ -1,5 +1,8 @@
 package net.tobiasfiller.miltenmagic.common.item;
 
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.tobiasfiller.miltenmagic.MiltenMagic;
 import net.tobiasfiller.miltenmagic.common.block.TeleportationPlatformBlock;
 import net.tobiasfiller.miltenmagic.core.registry.BlockRegistry;
 import net.tobiasfiller.miltenmagic.core.registry.ParticleRegistry;
@@ -42,7 +45,7 @@ import java.util.Random;
 //? Mount teleportation without dismount?
 //? inta Dimensional Teleportation? -> lookup ServerPlayerEntity#changeDimension
 
-public class TeleportationRuneItem extends Item {
+public class TeleportationSpellItem extends Item {
 
     protected static final int REQUIRED_EXP_LEVEL = 5;
     protected static final int EXP_COST = 30;
@@ -54,7 +57,7 @@ public class TeleportationRuneItem extends Item {
     private final int TELEPORT_DELAY = 200; // number of Ticks that delay the teleport
     private int teleportDelayDelta = 0;
 
-    public TeleportationRuneItem(boolean isScroll) {
+    public TeleportationSpellItem(boolean isScroll) {
         super(new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC).stacksTo(isScroll ? 64 : 1));
         this.isScroll = isScroll;
         this.doTeleportation = false;
@@ -91,10 +94,10 @@ public class TeleportationRuneItem extends Item {
                             currentDest = getVector3dfromTags(tags);
                             return InteractionResult.CONSUME;
                         } else {
-                            playerIn.displayClientMessage(new TextComponent(ChatFormatting.DARK_GREEN + "Higher experience level required"), true);
+                            playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.not_enough_exp"), true);
                         }
                     } else {
-                        playerIn.displayClientMessage(new TextComponent(ChatFormatting.RED + "The Teleportation Platform is blocked"), true);
+                        playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_blocked"), true);
                     }
                 } else {
                     tags.remove("x");
@@ -102,11 +105,11 @@ public class TeleportationRuneItem extends Item {
                     tags.remove("z");
                     tags.remove("direction");
                     tags.remove("dim");
-                    playerIn.displayClientMessage(new TextComponent(ChatFormatting.RED + "Teleportation Platform has been destroyed"), true);
+                    playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_destroyed"), true);
                     return InteractionResult.FAIL;
                 }
             } else {
-                playerIn.displayClientMessage(new TextComponent(ChatFormatting.RED + "Wrong Dimension"), true);
+                playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.wrong_dimension"), true);
             }
         }
 
@@ -132,10 +135,10 @@ public class TeleportationRuneItem extends Item {
                             currentDest = getVector3dfromTags(tags);
                             return InteractionResultHolder.consume(stack);
                         } else {
-                            playerIn.displayClientMessage(new TextComponent(ChatFormatting.DARK_GREEN + "Higher experience level required"), true);
+                            playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.not_enough_exp"), true);
                         }
                     } else {
-                        playerIn.displayClientMessage(new TextComponent(ChatFormatting.RED + "The teleportation platform is blocked"), true);
+                        playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_blocked"), true);
                     }
 
                 } else {
@@ -144,11 +147,11 @@ public class TeleportationRuneItem extends Item {
                     tags.remove("z");
                     tags.remove("direction");
                     tags.remove("dim");
-                    playerIn.displayClientMessage(new TextComponent(ChatFormatting.RED + "Your teleportation platform has been destroyed"), true);
+                    playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_destroyed"), true);
                     return InteractionResultHolder.fail(stack);
                 }
             } else {
-                playerIn.displayClientMessage(new TextComponent(ChatFormatting.RED + "Wrong dimension"), true);
+                playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.wrong_dimension"), true);
             }
         }
 
@@ -409,7 +412,7 @@ public class TeleportationRuneItem extends Item {
     }
 
     private void inValidPlatform(Player playerIn) {
-        playerIn.displayClientMessage(new TextComponent(ChatFormatting.RED + "Invalid Platform"), true);
+        playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.invalid_platform"), true);
     }
 
     private void setNBTTags(ItemStack stack, Vector3d offPos, Player playerIn, String dim) {
@@ -423,10 +426,11 @@ public class TeleportationRuneItem extends Item {
         tags.putString("dim", dim);
         tags.putFloat("direction", playerIn.rotA);
 
-        playerIn.displayClientMessage(new TextComponent(ChatFormatting.GREEN + "Linked at:" + " " +
+        playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.linked_at")
+                        .append(new TextComponent(ChatFormatting.GREEN + ": " +
                         tags.getDouble("x") + " / " +
                         tags.getDouble("y") + " / " +
-                        tags.getDouble("z"))
+                        tags.getDouble("z")))
                 , true);
     }
 
@@ -482,19 +486,40 @@ public class TeleportationRuneItem extends Item {
         CompoundTag tags = stack.getTag();
 
         if (tags == null || tags.isEmpty()) {
-            tooltip.add(new TextComponent(
-                    ChatFormatting.RED + "Unlinked"));
-            tooltip.add(new TextComponent(
-                    ChatFormatting.BLUE + "" + ChatFormatting.ITALIC + "Right click on a Teleportation Platform to link"));
-
+            tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.unlinked"));
+            tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.right_click"));
+            if (Screen.hasShiftDown()){
+                tooltip.add(new TextComponent(""));
+                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.lvl_required")
+                        .append(new TextComponent(
+                        ChatFormatting.DARK_GREEN + (": " + REQUIRED_EXP_LEVEL))));
+                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.exp_cost")
+                        .append(new TextComponent(
+                                ChatFormatting.GREEN + (": " + EXP_COST))));
+            } else {
+                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.shift"));
+            }
         } else {
-            tooltip.add(new TextComponent(
-                    ChatFormatting.GREEN + "Linked: " + tags.getDouble("x") + " / " +
-                            tags.getDouble("y") + " / " + tags.getDouble("z")));
-            tooltip.add(new TextComponent(
-                    ChatFormatting.DARK_GREEN + ("Level required: " + REQUIRED_EXP_LEVEL)));
+            if (Screen.hasShiftDown()){
+                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.linked")
+                        .append(new TextComponent(ChatFormatting.BLUE + ": " + tags.getDouble("x") + " / " +
+                                tags.getDouble("y") + " / " + tags.getDouble("z"))));
+                tooltip.add(new TextComponent(""));
+                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.lvl_required")
+                        .append(new TextComponent(
+                                ChatFormatting.DARK_GREEN + (": " + REQUIRED_EXP_LEVEL))));
+                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.exp_cost")
+                        .append(new TextComponent(
+                                ChatFormatting.GREEN + (": " + EXP_COST))));
+            } else {
+                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.linked"));
+                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.shift"));
+            }
+
         }
     }
+
+
 
     private boolean isLapisBlock(BlockPos pos, Level worldIn) {
         return (worldIn.getBlockState(pos).getBlock().equals(Blocks.LAPIS_BLOCK));

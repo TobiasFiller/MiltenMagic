@@ -1,10 +1,24 @@
 {
-  "item.miltenmagic.teleportation_scroll": "Teleportation Scroll",
-  "item.miltenmagic.teleportation_rune": "Teleportation Rune",
+  "item.miltenmagic.teleportation_scroll": "§dTeleportation Scroll§r",
+  "item.miltenmagic.teleportation_rune": "§dTeleportation Rune§r",
 
   "block.miltenmagic.teleportation_platform": "Teleportation Platform",
 
   "entity.minecraft.villager.miltenmagic.fire_mage": "Fire Mage",
 
-  "itemGroup.miltenmagictab": "Milten Magic"
+  "itemGroup.miltenmagictab": "Milten Magic",
+
+  "message.miltenmagic.teleportation_spell.not_enough_exp": "§2Higher experience level required§r",
+  "message.miltenmagic.teleportation_spell.platform_blocked": "§cThe Teleportation Platform is blocked§r",
+  "message.miltenmagic.teleportation_spell.platform_destroyed": "§cTeleportation Platform has been destroyed§r",
+  "message.miltenmagic.teleportation_spell.wrong_dimension": "§cWrong Dimension§r",
+  "message.miltenmagic.teleportation_spell.invalid_platform": "§cInvalid Platform§r",
+  "message.miltenmagic.teleportation_spell.linked_at":"§aLinked at§r",
+
+  "tooltip.miltenmagic.teleportation_spell.unlinked": "§8Unlinked§r",
+  "tooltip.miltenmagic.teleportation_spell.linked": "§9Linked§r",
+  "tooltip.miltenmagic.teleportation_spell.shift": "§7Hold§r [§fSHIFT§r] §7for requirements§r",
+  "tooltip.miltenmagic.teleportation_spell.right_click": "§9§oRight click on a Teleportation Platform to link§r",
+  "tooltip.miltenmagic.teleportation_spell.lvl_required":"§2Level required§r",
+  "tooltip.miltenmagic.teleportation_spell.exp_cost": "§aExp cost§r"
 }
