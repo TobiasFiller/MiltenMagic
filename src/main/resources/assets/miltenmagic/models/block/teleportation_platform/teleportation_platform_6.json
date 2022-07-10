@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "miltenmagic:blocks/teleportation_platform/teleportation_platform_6",
+    "side": "miltenmagic:blocks/teleportation_platform/teleportation_platform_side"
+  }
+}
