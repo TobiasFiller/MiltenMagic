@@ -21,7 +21,7 @@ public class VillagerRegistry {
 
     public static final RegistryObject<PoiType> FIRE_MAGE_POI = POI_TYPES.register("fire_mage_poi",
             () -> new PoiType("fire_mage_poi",
-                    PoiType.getBlockStates(Blocks.MAGMA_BLOCK), 1, 1));
+                    PoiType.getBlockStates(BlockRegistry.MAGICAL_LECTERN.get()), 1, 1));
 
     public static final RegistryObject<VillagerProfession> FIRE_MAGE =
             VILLAGER_PROFESSIONS.register("fire_mage",

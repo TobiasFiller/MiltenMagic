@@ -1,14 +1,11 @@
 package net.tobiasfiller.miltenmagic;
 
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.tobiasfiller.miltenmagic.core.registry.BlockRegistry;
-import net.tobiasfiller.miltenmagic.core.registry.ItemRegistry;
-import net.tobiasfiller.miltenmagic.core.registry.ParticleRegistry;
+import net.tobiasfiller.miltenmagic.core.registry.*;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.tobiasfiller.miltenmagic.core.registry.VillagerRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,6 +25,7 @@ public class MiltenMagic {
         //Mod Registry's
         ItemRegistry.ITEMS.register(bus);
         BlockRegistry.BLOCKS.register(bus);
+        MobEffectRegistry.MOB_EFFECT.register(bus);
         ParticleRegistry.PARTICLES.register(bus);
         VillagerRegistry.POI_TYPES.register(bus);
         VillagerRegistry.VILLAGER_PROFESSIONS.register(bus);
