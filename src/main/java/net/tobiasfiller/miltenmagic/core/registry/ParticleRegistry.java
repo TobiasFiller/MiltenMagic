@@ -13,4 +13,7 @@ public class ParticleRegistry {
 
     public static final RegistryObject<SimpleParticleType> TELEPORTATION_PARTICLE =
             PARTICLES.register("teleport_particle" , () -> new SimpleParticleType(false));
+
+    public static final RegistryObject<SimpleParticleType> FIRE_RAIN_PARTICLE =
+            PARTICLES.register("fire_rain_particle" , () -> new SimpleParticleType(false));
 }

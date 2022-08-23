@@ -1,4 +1,4 @@
-package net.tobiasfiller.miltenmagic.common.item;
+package net.tobiasfiller.miltenmagic.common.item.spellItems;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -16,8 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.tobiasfiller.miltenmagic.MiltenMagic;
-
-import java.util.Random;
+import net.tobiasfiller.miltenmagic.common.item.helperClasses.SpellItem;
 
 public class FireChargeSpell extends SpellItem {
 
@@ -117,9 +116,8 @@ public class FireChargeSpell extends SpellItem {
         return InteractionResultHolder.fail(stack);
     }
 
-    private void spawnFireCharge(Level pLevel, Player pPlayer, ItemStack stack, int pCharge) {
+    protected void spawnFireCharge(Level pLevel, Player pPlayer, ItemStack stack, int pCharge) {
         if (!pLevel.isClientSide) {
-
             Fireball fireball =
                     new LargeFireball(pLevel,
                             pPlayer,

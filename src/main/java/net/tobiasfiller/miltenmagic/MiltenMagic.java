@@ -27,6 +27,7 @@ public class MiltenMagic {
         BlockRegistry.BLOCKS.register(bus);
         MobEffectRegistry.MOB_EFFECT.register(bus);
         ParticleRegistry.PARTICLES.register(bus);
+        SoundRegistry.SOUND_EVENTS.register(bus);
         VillagerRegistry.POI_TYPES.register(bus);
         VillagerRegistry.VILLAGER_PROFESSIONS.register(bus);
 

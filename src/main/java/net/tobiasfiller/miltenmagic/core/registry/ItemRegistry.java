@@ -9,6 +9,8 @@ import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import net.tobiasfiller.miltenmagic.common.item.helperClasses.BuffSpellItem;
+import net.tobiasfiller.miltenmagic.common.item.spellItems.*;
 
 import java.util.function.Supplier;
 
@@ -43,9 +45,21 @@ public class ItemRegistry {
             ITEMS.register("magnetic_scroll",
                     () -> new BuffSpellItem(MobEffectRegistry.MAGNETIC_MOB_EFFECT, 5000, 0, 30, 10));
 
+    public static final RegistryObject<Item> MAGICAL_PROTECTION_SCROLL =
+            ITEMS.register("magical_protection_scroll",
+                    () -> new MagicalProtectionSpellItem(5000, 50, 100));
+
     public static final RegistryObject<Item> FIRE_CHARGE_SCROLL =
             ITEMS.register("fire_charge_scroll",
                     () -> new FireChargeSpell(30, 15));
+
+    public static final RegistryObject<Item> FIRE_ARROW_SCROLL =
+            ITEMS.register("fire_arrow_scroll",
+                    () -> new FireArrowSpell(10, 15));
+
+    public static final RegistryObject<Item> FIRE_RAINE_SCROLL =
+            ITEMS.register("fire_rain_scroll",
+                    () -> new FireRainSpell(30,15,true));
 
     public static final RegistryObject<Item> LEVITATION_SCROLL =
             ITEMS.register("levitation_scroll",
@@ -55,10 +69,23 @@ public class ItemRegistry {
     public static final RegistryObject<Item> TELEPORTATION_RUNE =
             ITEMS.register("teleportation_rune", () -> new TeleportationSpellItem(false));
 
+    // Swampweed
+    public static final RegistryObject<Item> GREEN_NOVICE =
+            ITEMS.register("green_novice", () -> new SwampweedStem(20,100,0.3f, false));
+
+    public static final RegistryObject<Item> BLACK_WISE =
+            ITEMS.register("black_wise", () -> new SwampweedStem(50,200,0.5f, false));
+
+    public static final RegistryObject<Item> DREAM_CALL =
+            ITEMS.register("dream_call", () -> new SwampweedStem(500,600,1, true));
+
     // Block Items
     public static final RegistryObject<Item> TELEPORTATION_PLATFORM = ITEMS.register("teleportation_platform", () -> new BlockItem(
             BlockRegistry.TELEPORTATION_PLATFORM_BLOCK.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
 
     public static final RegistryObject<Item> MAGICAL_LECTERN = ITEMS.register("magical_lectern", () -> new BlockItem(
             BlockRegistry.MAGICAL_LECTERN.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+    public static final RegistryObject<Item> SWAMPWEED = ITEMS.register("swampweed", () -> new BlockItem(
+            BlockRegistry.SWAMPWEED.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
     }

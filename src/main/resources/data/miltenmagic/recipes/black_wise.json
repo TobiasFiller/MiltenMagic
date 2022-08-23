@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "miltenmagic:swampweed"
+    },
+    {
+      "item": "miltenmagic:swampweed"
+    },
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "minecraft:lapis_lazuli"
+    }
+  ],
+  "result": {
+    "item": "miltenmagic:black_wise",
+    "count": 1
+  }
+}

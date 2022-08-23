@@ -8,21 +8,19 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.WritableBookItem;
 import net.minecraft.world.item.trading.MerchantOffer;
-import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
+import net.minecraftforge.event.village.WandererTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.tobiasfiller.miltenmagic.MiltenMagic;
-import net.tobiasfiller.miltenmagic.common.block.MagicalLecternBlock;
-import net.tobiasfiller.miltenmagic.common.item.BuffSpellItem;
-import net.tobiasfiller.miltenmagic.core.registry.BlockRegistry;
+import net.tobiasfiller.miltenmagic.common.item.helperClasses.BuffSpellItem;
 import net.tobiasfiller.miltenmagic.core.registry.ItemRegistry;
+import net.tobiasfiller.miltenmagic.core.registry.MobEffectRegistry;
 import net.tobiasfiller.miltenmagic.core.registry.VillagerRegistry;
 
 import java.util.List;
@@ -39,7 +37,8 @@ public class EventHandler {
             int villagerLevelOne = 1;
             int villagerLevelTwo = 2;
             int villagerLevelThree = 3;
-            int villagerLevelFore = 4;
+            int villagerLevelFour = 4;
+            int villagerLevelFive = 5;
 
             trades.get(villagerLevelOne).add((trader, rand) -> new MerchantOffer(
                     new ItemStack(Items.EMERALD, 10),
@@ -48,16 +47,10 @@ public class EventHandler {
                     16, 5, 0.01F));
 
             trades.get(villagerLevelOne).add((trader, rand) -> new MerchantOffer(
-                    new ItemStack(Items.EMERALD, 38),
-                    new ItemStack(Items.LAPIS_LAZULI, 16),
-                    new ItemStack(ItemRegistry.ABSORPTION_SCROLL.get(), 1),
-                    4, 13, 0.01F));
-
-            trades.get(villagerLevelTwo).add((trader, rand) -> new MerchantOffer(
-                    new ItemStack(Items.EMERALD, 42),
-                    new ItemStack(Items.LAPIS_LAZULI, 16),
-                    new ItemStack(ItemRegistry.RESISTANCE_SCROLL.get(), 1),
-                    4, 15, 0.01F));
+                    new ItemStack(Items.EMERALD, 15),
+                    new ItemStack(Items.LAPIS_LAZULI, 1),
+                    new ItemStack(ItemRegistry.FIRE_ARROW_SCROLL.get(), 1),
+                    16, 13, 0.01F));
 
             trades.get(villagerLevelTwo).add((trader, rand) -> new MerchantOffer(
                     new ItemStack(Items.EMERALD, 12),
@@ -66,17 +59,32 @@ public class EventHandler {
                     8, 15, 0.01F));
 
             trades.get(villagerLevelThree).add((trader, rand) -> new MerchantOffer(
-                    new ItemStack(Items.EMERALD, 15),
+                    new ItemStack(Items.EMERALD, 25),
                     new ItemStack(Items.LAPIS_LAZULI, 5),
                     new ItemStack(ItemRegistry.FIRE_CHARGE_SCROLL.get(), 1),
                     16, 15, 0.01F));
 
-            trades.get(villagerLevelFore).add((trader, rand) -> new MerchantOffer(
+            trades.get(villagerLevelFour).add((trader, rand) -> new MerchantOffer(
                     new ItemStack(Items.EMERALD, 30),
                     new ItemStack(Items.LAPIS_LAZULI, 5),
                     new ItemStack(ItemRegistry.TELEPORTATION_SCROLL.get(), 1),
                     16, 15, 0.01F));
+
+            trades.get(villagerLevelFive).add((trader,rand) -> new MerchantOffer(
+                    new ItemStack(Items.EMERALD, 50),
+                    new ItemStack(Items.LAPIS_LAZULI, 10),
+                    new ItemStack(ItemRegistry.MAGICAL_PROTECTION_SCROLL.get(), 1),
+                    1, 10, 0.01F));
         }
+    }
+
+    @SubscribeEvent
+    public static void addWanderingTraderTrades(final WandererTradesEvent event) {
+        List<VillagerTrades.ItemListing> trades = event.getRareTrades();
+        trades.add((trader, rand) -> new MerchantOffer(
+                new ItemStack(Items.EMERALD, 12),
+                new ItemStack(ItemRegistry.DREAM_CALL.get(),1),1,8,0.2f
+        ));
     }
 
     @SubscribeEvent
@@ -91,7 +99,7 @@ public class EventHandler {
 
                     player.getCooldowns().addCooldown(event.getItemStack().getItem(), buffSpell.getCoolDown());
                     player.playSound(SoundEvents.BEACON_POWER_SELECT, 1, 1);
-                    livingEntity.addEffect(new MobEffectInstance(buffSpell.getMobEffect(), buffSpell.getEffectDuration(), buffSpell.getEffectAmplifier()));
+                    livingEntity.addEffect(new MobEffectInstance(buffSpell.getMobEffect(), buffSpell.getEffectDuration(), buffSpell.getEffectAmplifier(),false,buffSpell.isVisible(),true));
 
                     player.giveExperiencePoints(-buffSpell.getEXP_COST());
 
@@ -105,6 +113,17 @@ public class EventHandler {
             }
         }
     }
+
+    @SubscribeEvent
+    public static void onLivingEntityGetDamage (final LivingHurtEvent event){
+        if (event.getEntityLiving().hasEffect(MobEffectRegistry.MAGICAL_PROTECTION_MOB_EFFECT.get())){
+            LivingEntity livingEntity = event.getEntityLiving();
+            float armor = livingEntity.getArmorCoverPercentage();
+            float f = armor < 0.25f? 0.2f : armor <= 0.5f? 0.5f : 1;
+            event.setAmount(event.getAmount() * f);
+        }
+    }
+
 
 //    @SubscribeEvent
 //    public static void useBookOnLectern(final PlayerInteractEvent.RightClickBlock event){

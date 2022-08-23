@@ -1,9 +1,10 @@
-package net.tobiasfiller.miltenmagic.common.item;
+package net.tobiasfiller.miltenmagic.common.item.spellItems;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.tobiasfiller.miltenmagic.MiltenMagic;
 import net.tobiasfiller.miltenmagic.common.block.TeleportationPlatformBlock;
+import net.tobiasfiller.miltenmagic.common.item.helperClasses.SpellItem;
 import net.tobiasfiller.miltenmagic.core.registry.BlockRegistry;
 import net.tobiasfiller.miltenmagic.core.registry.ParticleRegistry;
 import com.mojang.math.Vector3d;
@@ -37,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 
 
 //? arrival particle effect -> try an event

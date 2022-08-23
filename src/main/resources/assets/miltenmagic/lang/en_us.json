@@ -6,11 +6,20 @@
   "item.miltenmagic.fire_charge_scroll": "§dFire Charge Scroll§r",
   "item.miltenmagic.levitation_scroll": "§dLevitation Scroll§r",
   "item.miltenmagic.magnetic_scroll": "§dMagnetism Scroll§r",
+  "item.miltenmagic.magical_protection_scroll": "§dMagical Protection Scroll§r",
+  "item.miltenmagic.fire_arrow_scroll": "§dFire Arrow Scroll§r",
+  "item.miltenmagic.fire_rain_scroll": "§dFire Rain Scroll§r",
+
+  "item.miltenmagic.green_novice": "Green Novice",
+  "item.miltenmagic.black_wise": "Black Wise",
+  "item.miltenmagic.dream_call": "§dDream Call§r",
 
   "block.miltenmagic.teleportation_platform": "Teleportation Platform",
   "block.miltenmagic.magical_lectern":"Magical Lectern",
+  "block.miltenmagic.swampweed": "Swampweed",
 
   "effect.miltenmagic.magnetic": "Magnetic",
+  "effect.miltenmagic.magical_protection": "Magic Protection",
 
   "entity.minecraft.villager.miltenmagic.fire_mage": "Fire Mage",
 
@@ -28,7 +37,12 @@
   "tooltip.miltenmagic.teleportation_spell.linked": "§9Linked§r",
   "tooltip.miltenmagic.teleportation_spell.right_click": "§9§oRight click on a Teleportation Platform to link§r",
 
+  "tooltip.miltenmagic.magical_protection_spell.info_1": "§9Absorbs almost all Damage§r",
+  "tooltip.miltenmagic.magical_protection_spell.info_2": "§won't work combined with Armor§r",
+
   "tooltip.miltenmagic.spell.shift": "§7Hold§r [§fSHIFT§r] §7for requirements§r",
   "tooltip.miltenmagic.spell.lvl_required":"§2Level required§r",
-  "tooltip.miltenmagic.spell.exp_cost": "§aExp cost§r"
+  "tooltip.miltenmagic.spell.exp_cost": "§aExp cost§r",
+
+  "sounds.miltenmagic.swampweed_smoking": "Smoking Swampweed"
 }

@@ -1,4 +1,4 @@
-package net.tobiasfiller.miltenmagic.common.item;
+package net.tobiasfiller.miltenmagic.common.item.helperClasses;
 
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
@@ -27,11 +27,22 @@ public class BuffSpellItem extends SpellItem {
     protected final int effectDuration;
     protected final int effectAmplifier;
 
+    protected boolean visible;
+
     public BuffSpellItem(Supplier<MobEffect> mobEffect, int effectDuration, int effectAmplifier, int required_exp_level, int exp_cost) {
         super(required_exp_level,exp_cost, true);
         this.mobEffect = mobEffect;
         this.effectDuration = effectDuration;
         this.effectAmplifier = effectAmplifier;
+        this.visible = true;
+    }
+
+    public BuffSpellItem(Supplier<MobEffect> mobEffect, int effectDuration, int effectAmplifier, int required_exp_level, int exp_cost, boolean visible) {
+        super(required_exp_level,exp_cost, true);
+        this.mobEffect = mobEffect;
+        this.effectDuration = effectDuration;
+        this.effectAmplifier = effectAmplifier;
+        this.visible = visible;
     }
 
     public MobEffect getMobEffect() {
@@ -54,7 +65,9 @@ public class BuffSpellItem extends SpellItem {
     private void doEffect(Player pPlayer, ItemStack stack) {
         pPlayer.getCooldowns().addCooldown(this, COOL_DOWN);
         pPlayer.playSound(SoundEvents.BEACON_POWER_SELECT, 1, 1);
-        pPlayer.addEffect(new MobEffectInstance(mobEffect.get(), effectDuration,effectAmplifier));
+
+        pPlayer.addEffect(new MobEffectInstance(mobEffect.get(), effectDuration, effectAmplifier,false,visible,true));
+
 
         pPlayer.awardStat(Stats.ITEM_USED.get(this));
         if (!pPlayer.isCreative() && isScroll) {
@@ -104,4 +117,10 @@ public class BuffSpellItem extends SpellItem {
     public int getUseDuration(@NotNull ItemStack stack) {
         return USE_DURATION;
     }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+
 }
