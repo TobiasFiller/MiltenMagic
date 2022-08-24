@@ -4,5 +4,11 @@
     "sounds": [
       "miltenmagic:swampweed_smoking"
     ]
+  },
+  "fire_arrow": {
+    "subtitle": "sounds.miltenmagic.fire_arrow",
+    "sounds": [
+      "miltenmagic:fire_arrow"
+    ]
   }
 }

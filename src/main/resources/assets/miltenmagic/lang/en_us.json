@@ -16,6 +16,7 @@
 
   "block.miltenmagic.teleportation_platform": "Teleportation Platform",
   "block.miltenmagic.magical_lectern":"Magical Lectern",
+  "block.miltenmagic.table": "Table",
   "block.miltenmagic.swampweed": "Swampweed",
 
   "effect.miltenmagic.magnetic": "Magnetic",
@@ -44,5 +45,6 @@
   "tooltip.miltenmagic.spell.lvl_required":"§2Level required§r",
   "tooltip.miltenmagic.spell.exp_cost": "§aExp cost§r",
 
-  "sounds.miltenmagic.swampweed_smoking": "Smoking Swampweed"
+  "sounds.miltenmagic.swampweed_smoking": "Smoking Swampweed",
+  "sounds.miltenmagic.fire_arrow": "Fire Arrow"
 }

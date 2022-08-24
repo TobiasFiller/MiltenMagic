@@ -15,7 +15,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.tobiasfiller.miltenmagic.MiltenMagic;
+import net.tobiasfiller.miltenmagic.common.entity.FireArrowEntity;
 import net.tobiasfiller.miltenmagic.common.item.helperClasses.SpellItem;
+import net.tobiasfiller.miltenmagic.core.registry.SoundRegistry;
 
 public class FireArrowSpell extends SpellItem {
 
@@ -91,20 +93,19 @@ public class FireArrowSpell extends SpellItem {
     protected void spawnFlamingArrow(Level pLevel, Player pPlayer, ItemStack stack) {
         if (!pLevel.isClientSide) {
 
-            Arrow arrow = new Arrow(pLevel, pPlayer);
+            FireArrowEntity arrow = new FireArrowEntity(pPlayer, pLevel);
             arrow.setBaseDamage(4);
-            arrow.setSecondsOnFire(100);
             arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
             arrow.shoot(
                     pPlayer.getLookAngle().x,
                     pPlayer.getLookAngle().y,
                     pPlayer.getLookAngle().z,
-                    2.8f, 0.01f);
+                    1.5f, 0.01f);
 
             pLevel.addFreshEntity(arrow);
         }
 
-        pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.ARROW_SHOOT, SoundSource.PLAYERS, 1.0F, 0.3F);
+        pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundRegistry.FIRE_ARROW.get(), SoundSource.PLAYERS, 1.0F, (float) (1.0F + (random.nextDouble() * 0.3F)));
         pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.BLAZE_BURN, SoundSource.PLAYERS, 1.0F, 0.3F);
 
         pPlayer.awardStat(Stats.ITEM_USED.get(this));

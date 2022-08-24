@@ -86,6 +86,9 @@ public class ItemRegistry {
     public static final RegistryObject<Item> MAGICAL_LECTERN = ITEMS.register("magical_lectern", () -> new BlockItem(
             BlockRegistry.MAGICAL_LECTERN.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
 
+    public static final RegistryObject<Item> TABLE = ITEMS.register("table", () -> new BlockItem(
+            BlockRegistry.TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
     public static final RegistryObject<Item> SWAMPWEED = ITEMS.register("swampweed", () -> new BlockItem(
             BlockRegistry.SWAMPWEED.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
     }

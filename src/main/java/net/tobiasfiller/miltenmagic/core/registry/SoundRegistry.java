@@ -14,4 +14,8 @@ public class SoundRegistry {
     public static final RegistryObject<SoundEvent> SWAMPWEED_SMOKE =
             SOUND_EVENTS.register("swampweed_smoking",
                     () -> new SoundEvent(new ResourceLocation(MiltenMagic.MOD_ID,"swampweed_smoking")));
+
+    public static final RegistryObject<SoundEvent> FIRE_ARROW =
+            SOUND_EVENTS.register("fire_arrow",
+                    () -> new SoundEvent(new ResourceLocation(MiltenMagic.MOD_ID,"fire_arrow")));
 }
