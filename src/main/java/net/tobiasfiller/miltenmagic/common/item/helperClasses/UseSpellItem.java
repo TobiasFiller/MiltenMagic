@@ -33,9 +33,7 @@ public class UseSpellItem extends SpellItem {
     @Override
     public void releaseUsing(ItemStack pStack, Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
         if (pLivingEntity instanceof Player pPlayer && pLevel.isClientSide) {
-            if (!pPlayer.isCreative() && isScroll) {
-                pStack.shrink(1);
-            }
+            consumeSpell(pPlayer,pStack,0);
         }
     }
 

@@ -5,6 +5,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -21,14 +23,20 @@ public class SpellItem extends Item {
 
     protected final int REQUIRED_EXP_LEVEL;
     protected final int EXP_COST;
+    protected final int COOL_DOWN;
     protected final boolean isScroll;
     protected final Random random = new Random();
 
-    public SpellItem(int required_exp_level, int exp_cost, boolean isScroll) {
+    public SpellItem(int required_exp_level, int exp_cost, int cooldown, boolean isScroll) {
         super(new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC).stacksTo(isScroll ? 64 : 1));
         this.isScroll = isScroll;
         REQUIRED_EXP_LEVEL = required_exp_level;
         EXP_COST = exp_cost;
+        COOL_DOWN = cooldown;
+    }
+
+    public SpellItem(int required_exp_level, int exp_cost, boolean isScroll) {
+        this(required_exp_level,exp_cost,0,isScroll);
     }
 
     public int getREQUIRED_EXP_LEVEL() {
@@ -37,6 +45,25 @@ public class SpellItem extends Item {
 
     public int getEXP_COST() {
         return EXP_COST;
+    }
+
+    public int getCoolDown(){
+        return COOL_DOWN;
+    }
+
+    public void consumeSpell(Player pPlayer, ItemStack stack){
+        consumeSpell(pPlayer,stack,EXP_COST);
+    }
+
+    public void consumeSpell(Player pPlayer, ItemStack stack, int exp_cost){
+        pPlayer.getCooldowns().addCooldown(this, 20);
+        pPlayer.awardStat(Stats.ITEM_USED.get(this));
+        if (!pPlayer.isCreative()) {
+            pPlayer.giveExperiencePoints(-exp_cost);
+            if (isScroll){
+                stack.shrink(1);
+            }
+        }
     }
 
     @Override

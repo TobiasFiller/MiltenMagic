@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 public class BuffSpellItem extends SpellItem {
 
     public static final int USE_DURATION = 100;
-    public static final int COOL_DOWN = 300;
 
     protected final Supplier<MobEffect> mobEffect;
     protected final int effectDuration;
@@ -30,15 +29,11 @@ public class BuffSpellItem extends SpellItem {
     protected boolean visible;
 
     public BuffSpellItem(Supplier<MobEffect> mobEffect, int effectDuration, int effectAmplifier, int required_exp_level, int exp_cost) {
-        super(required_exp_level,exp_cost, true);
-        this.mobEffect = mobEffect;
-        this.effectDuration = effectDuration;
-        this.effectAmplifier = effectAmplifier;
-        this.visible = true;
+        this(mobEffect,effectDuration,effectAmplifier,required_exp_level,exp_cost,true);
     }
 
     public BuffSpellItem(Supplier<MobEffect> mobEffect, int effectDuration, int effectAmplifier, int required_exp_level, int exp_cost, boolean visible) {
-        super(required_exp_level,exp_cost, true);
+        super(required_exp_level,exp_cost,300, true);
         this.mobEffect = mobEffect;
         this.effectDuration = effectDuration;
         this.effectAmplifier = effectAmplifier;
@@ -54,26 +49,16 @@ public class BuffSpellItem extends SpellItem {
     }
 
 
-    public int getCoolDown(){
-        return COOL_DOWN;
-    }
 
     public int getEffectAmplifier(){
         return effectAmplifier;
     }
 
     private void doEffect(Player pPlayer, ItemStack stack) {
-        pPlayer.getCooldowns().addCooldown(this, COOL_DOWN);
         pPlayer.playSound(SoundEvents.BEACON_POWER_SELECT, 1, 1);
-
         pPlayer.addEffect(new MobEffectInstance(mobEffect.get(), effectDuration, effectAmplifier,false,visible,true));
 
-
-        pPlayer.awardStat(Stats.ITEM_USED.get(this));
-        if (!pPlayer.isCreative() && isScroll) {
-            pPlayer.giveExperiencePoints(-EXP_COST);
-            stack.shrink(1);
-        }
+        consumeSpell(pPlayer,stack);
     }
 
     @Override

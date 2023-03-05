@@ -86,8 +86,38 @@ public class ItemRegistry {
     public static final RegistryObject<Item> MAGICAL_LECTERN = ITEMS.register("magical_lectern", () -> new BlockItem(
             BlockRegistry.MAGICAL_LECTERN.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
 
+    // -Tables
+
     public static final RegistryObject<Item> TABLE = ITEMS.register("table", () -> new BlockItem(
             BlockRegistry.TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+    public static final RegistryObject<Item> ACACIA_TABLE = ITEMS.register("acacia_table", () -> new BlockItem(
+            BlockRegistry.ACACIA_TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+    public static final RegistryObject<Item> BIRCH_TABLE = ITEMS.register("birch_table", () -> new BlockItem(
+            BlockRegistry.BIRCH_TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+    public static final RegistryObject<Item> CRIMSON_TABLE = ITEMS.register("crimson_table", () -> new BlockItem(
+            BlockRegistry.CRIMSON_TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+    public static final RegistryObject<Item> DARK_OAK_TABLE = ITEMS.register("dark_oak_table", () -> new BlockItem(
+            BlockRegistry.DARK_OAK_TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+    public static final RegistryObject<Item> JUNGLE_TABLE = ITEMS.register("jungle_table", () -> new BlockItem(
+            BlockRegistry.JUNGLE_TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+    public static final RegistryObject<Item> OAK_TABLE = ITEMS.register("oak_table", () -> new BlockItem(
+            BlockRegistry.OAK_TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+    public static final RegistryObject<Item> SPRUCE_TABLE = ITEMS.register("spruce_table", () -> new BlockItem(
+            BlockRegistry.SPRUCE_TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+    public static final RegistryObject<Item> WARPED_TABLE = ITEMS.register("warped_table", () -> new BlockItem(
+            BlockRegistry.WARPED_TABLE.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
+
+
+    public static final RegistryObject<Item> STONE_PEDESTAL = ITEMS.register("stone_pedestal", () -> new BlockItem(
+            BlockRegistry.STONE_PEDESTAL.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));
 
     public static final RegistryObject<Item> SWAMPWEED = ITEMS.register("swampweed", () -> new BlockItem(
             BlockRegistry.SWAMPWEED.get(), new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC)));

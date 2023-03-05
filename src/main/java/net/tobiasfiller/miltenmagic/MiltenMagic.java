@@ -25,6 +25,7 @@ public class MiltenMagic {
         //Mod Registry's
         ItemRegistry.ITEMS.register(bus);
         BlockRegistry.BLOCKS.register(bus);
+        BlockEntityRegistry.BLOCK_ENTITIES.register(bus);
         EntityRegistry.ENTITY_TYPES.register(bus);
         MobEffectRegistry.MOB_EFFECT.register(bus);
         ParticleRegistry.PARTICLES.register(bus);

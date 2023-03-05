@@ -134,12 +134,7 @@ public class FireChargeSpell extends SpellItem {
         pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 1.0F, 1.0F);
 
         storedEXP = 0;
-        pPlayer.awardStat(Stats.ITEM_USED.get(this));
-        if (!pPlayer.isCreative() && isScroll) {
-            stack.shrink(1);
-        }
-
-        pPlayer.awardStat(Stats.ITEM_USED.get(this));
+        consumeSpell(pPlayer,stack,0);
     }
 
     public static int getPowerForTime(int pCharge) {

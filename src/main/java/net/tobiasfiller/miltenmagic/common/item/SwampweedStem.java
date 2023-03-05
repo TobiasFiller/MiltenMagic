@@ -17,6 +17,7 @@ import net.minecraft.world.level.Level;
 import net.tobiasfiller.miltenmagic.core.registry.SoundRegistry;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Random;
 
 public class SwampweedStem extends Item {
@@ -62,7 +63,12 @@ public class SwampweedStem extends Item {
             if (!player.isCreative()) {
                 pStack.shrink(1);
                 if (random.nextDouble() <= probability) {
-                    player.addEffect(new MobEffectInstance(MobEffects.CONFUSION, duration));
+                    if (player.hasEffect(MobEffects.CONFUSION)){
+                        player.addEffect(new MobEffectInstance(MobEffects.CONFUSION, duration + Objects.requireNonNull(player.getEffect(MobEffects.CONFUSION)).getDuration()));
+                    } else {
+                        player.addEffect(new MobEffectInstance(MobEffects.CONFUSION, duration));
+                    }
+
                 }
             }
         }

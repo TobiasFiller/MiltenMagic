@@ -1,0 +1,49 @@
+{
+  "variants": {
+    "side=0,facing=east": {
+      "model": "miltenmagic:block/tables/spruce/single_table",
+      "y": 180
+    },
+    "side=0,facing=north": {
+      "model": "miltenmagic:block/tables/spruce/single_table",
+      "y": 90
+    },
+    "side=0,facing=south": {
+      "model": "miltenmagic:block/tables/spruce/single_table",
+      "y": 270
+    },
+    "side=0,facing=west": {
+      "model": "miltenmagic:block/tables/spruce/single_table"
+    },
+    "side=1,facing=east": {
+      "model": "miltenmagic:block/tables/spruce/double_table_left",
+      "y": 180
+    },
+    "side=1,facing=north": {
+      "model": "miltenmagic:block/tables/spruce/double_table_left",
+      "y": 90
+    },
+    "side=1,facing=south": {
+      "model": "miltenmagic:block/tables/spruce/double_table_left",
+      "y": 270
+    },
+    "side=1,facing=west": {
+      "model": "miltenmagic:block/tables/spruce/double_table_left"
+    },
+    "side=2,facing=east": {
+      "model": "miltenmagic:block/tables/spruce/double_table_right",
+      "y": 180
+    },
+    "side=2,facing=north": {
+      "model": "miltenmagic:block/tables/spruce/double_table_right",
+      "y": 90
+    },
+    "side=2,facing=south": {
+      "model": "miltenmagic:block/tables/spruce/double_table_right",
+      "y": 270
+    },
+    "side=2,facing=west": {
+      "model": "miltenmagic:block/tables/spruce/double_table_right"
+    }
+  }
+}

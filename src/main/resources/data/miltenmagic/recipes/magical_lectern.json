@@ -1,7 +1,7 @@
 {
     "type": "minecraft:crafting_shaped",
     "pattern": [
-        "iii",
+        "ibi",
         "iLi",
         "iii"
     ],
@@ -11,6 +11,9 @@
         },
         "L": {
             "item": "minecraft:lectern"
+        },
+        "b": {
+            "item": "minecraft:book"
         }
     },
     "result": {

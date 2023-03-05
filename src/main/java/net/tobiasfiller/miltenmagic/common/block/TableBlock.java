@@ -9,10 +9,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,6 +17,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -46,9 +44,14 @@ public class TableBlock extends Block {
     public static final VoxelShape DOUBLE_SHAPE_SOUTH = Shapes.or(Block.box(4.0D, 2.0D, 6.0D, 16.0D, 6.0D, 10.0D), TABLETOP, LEG_NW,LEG_SW);
 
     public TableBlock() {
-        super(BlockBehaviour.Properties.of(Material.WOOD).strength(2.5F).noOcclusion());
+        super(BlockBehaviour.Properties.of(Material.WOOD, MaterialColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD));
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
         this.registerDefaultState(this.stateDefinition.any().setValue(SIDE, 0));
+    }
+
+    @Override
+    public float getSpeedFactor() {
+        return super.getSpeedFactor();
     }
 
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
@@ -116,6 +119,7 @@ public class TableBlock extends Block {
 
     @Override
     public void playerDestroy(Level pLevel, Player pPlayer, BlockPos pPos, BlockState pState, @Nullable BlockEntity pBlockEntity, ItemStack pTool) {
+        super.playerDestroy(pLevel,pPlayer,pPos,pState,pBlockEntity,pTool);
         destroy(pLevel, pPos, pState);
     }
 

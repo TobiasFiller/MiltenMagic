@@ -21,10 +21,10 @@ import net.tobiasfiller.miltenmagic.core.registry.SoundRegistry;
 
 public class FireArrowSpell extends SpellItem {
 
-    public static final int MIN_USE_DURATION = 5;
+    public static final int MIN_USE_DURATION = 1;
 
     public FireArrowSpell(int required_exp_level, int exp_cost) {
-        super(required_exp_level, exp_cost, true);
+        super(required_exp_level, exp_cost,10, true);
     }
 
     public int getUseDuration(ItemStack pStack) {
@@ -94,7 +94,7 @@ public class FireArrowSpell extends SpellItem {
         if (!pLevel.isClientSide) {
 
             FireArrowEntity arrow = new FireArrowEntity(pPlayer, pLevel);
-            arrow.setBaseDamage(4);
+            arrow.setBaseDamage(6);
             arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
             arrow.shoot(
                     pPlayer.getLookAngle().x,
@@ -108,12 +108,7 @@ public class FireArrowSpell extends SpellItem {
         pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundRegistry.FIRE_ARROW.get(), SoundSource.PLAYERS, 1.0F, (float) (1.0F + (random.nextDouble() * 0.3F)));
         pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.BLAZE_BURN, SoundSource.PLAYERS, 1.0F, 0.3F);
 
-        pPlayer.awardStat(Stats.ITEM_USED.get(this));
-        if (!pPlayer.isCreative() && isScroll) {
-            stack.shrink(1);
-        }
-
-        pPlayer.awardStat(Stats.ITEM_USED.get(this));
+        consumeSpell(pPlayer,stack);
     }
 
 }

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "tables",
+  "pattern": [
+    "___",
+    "O O"
+  ],
+  "key": {
+    "_": {
+      "item": "minecraft:warped_slab"
+    },
+    "O": {
+      "item": "minecraft:warped_planks"
+    }
+  },
+  "result": {
+    "item": "miltenmagic:warped_table",
+    "count": 1
+  }
+}
