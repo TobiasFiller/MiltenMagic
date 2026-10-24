@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "miltenmagic:teleportation_scroll"
+    },
+    "title": {
+      "translate": "advancement.miltenmagic.first_teleport.title"
+    },
+    "description": {
+      "translate": "advancement.miltenmagic.first_teleport.description"
+    },
+    "frame": "task",
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "teleported": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}
