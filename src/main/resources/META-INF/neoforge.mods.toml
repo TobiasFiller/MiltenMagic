@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+
+[[mods]]
+modId="miltenmagic"
+version="${minecraft_version}-${mod_version}"
+displayName="Milten Magic"
+authors="Tobias Filler"
+description='''
+Milten Magic adds a Gothic inspired magic system to Minecraft'''
+
+[[dependencies.miltenmagic]]
+modId="neoforge"
+type="required"
+versionRange="${neo_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.miltenmagic]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"

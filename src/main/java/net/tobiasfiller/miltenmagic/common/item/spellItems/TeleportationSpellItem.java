@@ -1,24 +1,23 @@
 package net.tobiasfiller.miltenmagic.common.item.spellItems;
 
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.tobiasfiller.miltenmagic.MiltenMagic;
 import net.tobiasfiller.miltenmagic.common.block.TeleportationPlatformBlock;
 import net.tobiasfiller.miltenmagic.common.item.helperClasses.SpellItem;
 import net.tobiasfiller.miltenmagic.core.registry.BlockRegistry;
 import net.tobiasfiller.miltenmagic.core.registry.ParticleRegistry;
-import com.mojang.math.Vector3d;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -28,6 +27,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -35,28 +35,56 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Objects;
-
-
-//? arrival particle effect -> try an event
-//? player freeze without slowness zoom -> create a new slowness effect
-//? Mount teleportation without dismount?
-//? inta Dimensional Teleportation? -> lookup ServerPlayerEntity#changeDimension
 
 public class TeleportationSpellItem extends SpellItem {
 
-    private boolean doTeleportation;
-    private Vec3 currentDest;
-    private final int TELEPORT_DELAY = 200; // number of Ticks that delay the teleport
-    private int teleportDelayDelta = 0;
+    private final int TELEPORT_DELAY = 200;
+
+    /**
+     * The pending-teleport state (armed flag + countdown) lives in the stack's CUSTOM_DATA
+     * instead of on the item instance.
+     *
+     * <p>Items are singletons shared by every stack, and {@link Item#inventoryTick} is called
+     * once per non-empty stack in the player's inventory. Keeping the counter on the item
+     * therefore advanced it N times per tick for N carried scrolls, so the delay silently
+     * shrank (200 ticks for one stack, 40 for five).
+     */
+    private static final String TAG_PENDING = "tpPending";
+    private static final String TAG_DELTA = "tpDelta";
 
     public TeleportationSpellItem(boolean isScroll) {
         super(5,30,isScroll);
+    }
 
-        this.doTeleportation = false;
-        this.currentDest = null;
+    // ---------------------------------------------------------------------
+    // Item data storage.
+    // In 1.21.1 items no longer store raw NBT; arbitrary tags live in the
+    // DataComponents.CUSTOM_DATA component instead of ItemStack#getOrCreateTag().
+    // ---------------------------------------------------------------------
+
+    private static CompoundTag readTags(ItemStack stack) {
+        CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+        return data == null ? new CompoundTag() : data.copyTag();
+    }
+
+    /**
+     * Writes the link data onto the stack.
+     * <p>
+     * IMPORTANT: readTags() hands out a detached copy (ItemStack#get returns a component
+     * value, not a reference), so callers must call this with the copy they modified.
+     * Never mutate a CompoundTag obtained from readTags() and expect the stack to change.
+     */
+private static void writeTags(ItemStack stack, CompoundTag tags) {
+        if (tags.isEmpty()) {
+            stack.remove(DataComponents.CUSTOM_DATA);
+        } else {
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tags));
+        }
+    }
+
+    private static void clearTags(ItemStack stack) {
+        stack.remove(DataComponents.CUSTOM_DATA);
     }
 
     @Override
@@ -67,44 +95,39 @@ public class TeleportationSpellItem extends SpellItem {
 
         assert playerIn != null;
         ItemStack stack = playerIn.getItemInHand(context.getHand());
-        CompoundTag tags = stack.getTag();
+        CompoundTag tags = readTags(stack);
 
 
-        if (tags == null || tags.isEmpty()) {
+        if (tags.isEmpty()) {
             BlockPos offPos = context.getClickedPos();
             if (!world.isClientSide) {
-                Vector3d center = findAndCreatePlatform(offPos, world);
+                Vec3 center = findAndCreatePlatform(offPos, world);
                 if (center != null) {
-                    setNBTTags(stack, center, playerIn, world.dimension().toString());
+                    setNBTTags(stack, center, playerIn, world.dimension().location().toString());
                 } else {
                     inValidPlatform(playerIn);
                 }
             }
-        } else if (!world.isClientSide && !doTeleportation) {
-            if (world.dimension().toString().equals(tags.getString("dim"))) {
+        } else if (!world.isClientSide && !isTeleporting(stack)) {
+            if (world.dimension().location().toString().equals(tags.getString("dim"))) {
                 if (checkTeleportationPlatform(world, new BlockPos(tags.getInt("x"), tags.getInt("y"), tags.getInt("z")))) {
                     if (!checkTeleportationPlatformBlocked(world, new BlockPos(tags.getInt("x"), tags.getInt("y") + 2, tags.getInt("z")))) {
                         if (playerIn.isCreative() || playerIn.experienceLevel >= REQUIRED_EXP_LEVEL) {
-                            doTeleportation = true;
-                            currentDest = getVector3dfromTags(tags);
+                            armTeleportation(stack);
                             return InteractionResult.CONSUME;
                         } else {
-                            playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
+                            playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
                         }
                     } else {
-                        playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_blocked"), true);
+                        playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_blocked"), true);
                     }
                 } else {
-                    tags.remove("x");
-                    tags.remove("y");
-                    tags.remove("z");
-                    tags.remove("direction");
-                    tags.remove("dim");
-                    playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_destroyed"), true);
+                    clearTags(stack);
+                    playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_destroyed"), true);
                     return InteractionResult.FAIL;
                 }
             } else {
-                playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.wrong_dimension"), true);
+                playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".teleportation_spell.wrong_dimension"), true);
             }
         }
 
@@ -119,34 +142,29 @@ public class TeleportationSpellItem extends SpellItem {
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level worldIn, Player playerIn, @NotNull InteractionHand handIn) {
         ItemStack stack = playerIn.getItemInHand(handIn);
-        CompoundTag tags = stack.getTag();
+        CompoundTag tags = readTags(stack);
 
-        if (tags != null && !tags.isEmpty() && !worldIn.isClientSide && !doTeleportation) {
-            if (worldIn.dimension().toString().equals(tags.getString("dim"))) {
+        if (!tags.isEmpty() && !worldIn.isClientSide && !isTeleporting(stack)) {
+            if (worldIn.dimension().location().toString().equals(tags.getString("dim"))) {
                 if (checkTeleportationPlatform(worldIn, new BlockPos(tags.getInt("x"), tags.getInt("y"), tags.getInt("z")))) {
                     if (!checkTeleportationPlatformBlocked(worldIn, new BlockPos(tags.getInt("x"), tags.getInt("y") + 2, tags.getInt("z")))) {
                         if (playerIn.isCreative() || playerIn.experienceLevel >= REQUIRED_EXP_LEVEL) {
-                            doTeleportation = true;
-                            currentDest = getVector3dfromTags(tags);
+                            armTeleportation(stack);
                             return InteractionResultHolder.consume(stack);
                         } else {
-                            playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
+                            playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
                         }
                     } else {
-                        playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_blocked"), true);
+                        playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_blocked"), true);
                     }
 
                 } else {
-                    tags.remove("x");
-                    tags.remove("y");
-                    tags.remove("z");
-                    tags.remove("direction");
-                    tags.remove("dim");
-                    playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_destroyed"), true);
+                    clearTags(stack);
+                    playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".teleportation_spell.platform_destroyed"), true);
                     return InteractionResultHolder.fail(stack);
                 }
             } else {
-                playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.wrong_dimension"), true);
+                playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".teleportation_spell.wrong_dimension"), true);
             }
         }
 
@@ -156,42 +174,55 @@ public class TeleportationSpellItem extends SpellItem {
 
     @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level worldIn, @NotNull Entity entityIn, int itemSlot, boolean isSelected) {
-        if (doTeleportation && entityIn instanceof Player playerIn) {
-            if (isInMainHand(playerIn) && getVector3dfromTags(Objects.requireNonNull(playerIn.getMainHandItem().getTag())).equals(currentDest)) {
-                if (worldIn.isClientSide) {
+        // inventoryTick runs once per stack in the inventory. Only the stack actually held in
+        // the main hand may advance the countdown, otherwise every extra scroll carried would
+        // tick the countdown down faster and shorten the delay.
+        if (entityIn instanceof Player playerIn
+                && playerIn.getMainHandItem() == stack
+                && isTeleporting(stack)) {
 
-                    particleGenerator(worldIn, playerIn, teleportDelayDelta);
-                    int teleportSoundPre = 10;
-                    if (teleportDelayDelta == (TELEPORT_DELAY - teleportSoundPre)) {
-                        playerIn.playSound(SoundEvents.ENDERMAN_TELEPORT, 1, 1);
-                    }
+            CompoundTag tags = readTags(stack);
+            int delta = tags.getInt(TAG_DELTA);
+            if (worldIn.isClientSide) {
 
-                } else {
-
-                    teleportDelayDelta++;
-                    playerIn.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 1, 9));
-
-                    if (teleportDelayDelta >= TELEPORT_DELAY) {
-                        doTeleportation = false;
-                        teleportDelayDelta = 0;
-                        doTeleportation(worldIn, playerIn, playerIn.getMainHandItem());
-                    }
+                particleGenerator(worldIn, playerIn, delta);
+                int teleportSoundPre = 10;
+                if (delta == (TELEPORT_DELAY - teleportSoundPre)) {
+                    playerIn.playSound(SoundEvents.ENDERMAN_TELEPORT, 1, 1);
                 }
+
             } else {
-                doTeleportation = false;
-                teleportDelayDelta = 0;
+
+                delta++;
+                tags.putInt(TAG_DELTA, delta);
+                writeTags(stack, tags);
+                playerIn.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 1, 9));
+
+                if (delta >= TELEPORT_DELAY) {
+                    disarmTeleportation(stack);
+                    doTeleportation(worldIn, playerIn, stack);
+                }
             }
-        } /*else if (entityIn instanceof PlayerEntity) {
-            PlayerEntity playerIn = ((PlayerEntity) entityIn);
-            if (isInMainHand(playerIn) && (worldIn.isRemote)) {
-                idelParticleGenerator(worldIn,playerIn,stack);
-            }
-        }*/
+        }
         super.inventoryTick(stack, worldIn, entityIn, itemSlot, isSelected);
     }
 
-    private boolean isInMainHand(Player playerIn) {
-        return playerIn.getMainHandItem().getItem().equals(this);
+    private boolean isTeleporting(ItemStack stack) {
+        return readTags(stack).getBoolean(TAG_PENDING);
+    }
+
+    private void armTeleportation(ItemStack stack) {
+        CompoundTag tags = readTags(stack);
+        tags.putBoolean(TAG_PENDING, true);
+        tags.putInt(TAG_DELTA, 0);
+        writeTags(stack, tags);
+    }
+
+    private void disarmTeleportation(ItemStack stack) {
+        CompoundTag tags = readTags(stack);
+        tags.remove(TAG_PENDING);
+        tags.remove(TAG_DELTA);
+        writeTags(stack, tags);
     }
 
     private Vec3 getVector3dfromTags(CompoundTag tags) {
@@ -219,8 +250,7 @@ public class TeleportationSpellItem extends SpellItem {
         double ang = 0.0d;
         double r = 1.2;
 
-        //particles only spawn every 2t tick and half of the teleportDelay
-        if (/*delta % 3 > 0.2 &&*/ delta < TELEPORT_DELAY / 5 * 3) {
+        if (delta < TELEPORT_DELAY / 5 * 3) {
             for (double i = 0; i < 40; ++i) {
 
                 worldIn.addParticle(ParticleRegistry.TELEPORTATION_PARTICLE.get(),
@@ -242,19 +272,19 @@ public class TeleportationSpellItem extends SpellItem {
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack) {
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         return 40;
     }
 
-    private Vector3d blockPosToVector3d(BlockPos p) {
+    private Vec3 blockPosToVector3d(BlockPos p) {
         return blockPosToVector3d(p, 0.0d);
     }
 
-    private Vector3d blockPosToVector3d(BlockPos p, Double offset) {
-        return new Vector3d(p.getX() + offset, p.getY(), p.getZ() + offset);
+    private Vec3 blockPosToVector3d(BlockPos p, Double offset) {
+        return new Vec3(p.getX() + offset, p.getY(), p.getZ() + offset);
     }
 
-    private Vector3d findAndCreatePlatform(BlockPos pos, Level world) {
+    private Vec3 findAndCreatePlatform(BlockPos pos, Level world) {
         if (isLapisBlock(pos, world)) {
             if (isValidPlatform3x3(pos, world)) {
                 createNewPlatform3x3(pos, world);
@@ -288,7 +318,7 @@ public class TeleportationSpellItem extends SpellItem {
         return null;
     }
 
-    private Vector3d getCenterFromExistingPlatform(BlockPos pos, Level world, Integer recursionLevel) {
+    private Vec3 getCenterFromExistingPlatform(BlockPos pos, Level world, Integer recursionLevel) {
         if (recursionLevel >= 5) return null;
 
         BlockState current = world.getBlockState(pos);
@@ -298,7 +328,7 @@ public class TeleportationSpellItem extends SpellItem {
             return blockPosToVector3d(pos, 0.5d);
         } else {
             BlockPos newPos = new BlockPos(pos.getX() - 1, pos.getY(), pos.getZ());
-            Vector3d tmp = null;
+            Vec3 tmp = null;
             if (isTeleportationPlatformBlock(newPos, world)) {
                 tmp = getCenterFromExistingPlatform(newPos, world, recursionLevel + 1);
             }
@@ -324,13 +354,6 @@ public class TeleportationSpellItem extends SpellItem {
         }
     }
 
-    /**
-     * Checks all neighboring blocks (3x3) if they are a Lapisblock
-     *
-     * @param pos   the pos of the current block
-     * @param world the current world
-     * @return the blockpos of the neighboring block that is a Lapisblock or null if there is none
-     */
     private BlockPos checkNeighbors(BlockPos pos, Level world) {
         for (int x = -1; x < 2; x++) {
             for (int z = -1; z < 2; z++) {
@@ -376,14 +399,6 @@ public class TeleportationSpellItem extends SpellItem {
         return isValidPlatform(pos, world, 3);
     }
 
-    /**
-     * Checks if the Platform is valid
-     *
-     * @param pos   has to be pos of the north west Lapisblock
-     * @param world the world
-     * @param size  the size of the Platform - must be >= 3
-     * @return if it is a valid Platform
-     */
     private boolean isValidPlatform(BlockPos pos, Level world, Integer size) {
         boolean isValid = true;
         if (size < 3) {
@@ -407,22 +422,20 @@ public class TeleportationSpellItem extends SpellItem {
     }
 
     private void inValidPlatform(Player playerIn) {
-        playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.invalid_platform"), true);
+        playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".teleportation_spell.invalid_platform"), true);
     }
 
-    private void setNBTTags(ItemStack stack, Vector3d offPos, Player playerIn, String dim) {
-        stack.setTag(new CompoundTag());
-        CompoundTag tags = stack.getTag();
-
-        assert tags != null;
+    private void setNBTTags(ItemStack stack, Vec3 offPos, Player playerIn, String dim) {
+        CompoundTag tags = readTags(stack);
         tags.putDouble("x", offPos.x);
         tags.putDouble("y", offPos.y);
         tags.putDouble("z", offPos.z);
         tags.putString("dim", dim);
         tags.putFloat("direction", playerIn.rotA);
+        writeTags(stack, tags);
 
-        playerIn.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".teleportation_spell.linked_at")
-                        .append(new TextComponent(ChatFormatting.GREEN + ": " +
+        playerIn.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".teleportation_spell.linked_at")
+                        .append(Component.literal(ChatFormatting.GREEN + ": " +
                         tags.getDouble("x") + " / " +
                         tags.getDouble("y") + " / " +
                         tags.getDouble("z")))
@@ -431,18 +444,22 @@ public class TeleportationSpellItem extends SpellItem {
 
     public void doTeleportation(Level worldIn, Player playerIn, ItemStack stack) {
 
-        CompoundTag tags = stack.getTag();
+        CompoundTag tags = readTags(stack);
+
+        double destX = tags.getDouble("x");
+        double destY = tags.getDouble("y");
+        double destZ = tags.getDouble("z");
+
         if (!worldIn.isClientSide) {
 
             playerIn.getCooldowns().addCooldown(this, 500);
 
             float pYaw = playerIn.rotA;
-            assert tags != null;
             if (tags.contains("direction")) {
                 pYaw = tags.getFloat("direction");
             }
 
-            double OffsetY = (checkTeleportationPlatformBlocked(worldIn, new BlockPos(tags.getDouble("x"), tags.getDouble("y") + 1, tags.getDouble("z")))) ? 1.0d : 0.0d;
+            double OffsetY = checkTeleportationPlatformBlocked(worldIn, BlockPos.containing(destX, destY + 1, destZ)) ? 1.0d : 0.0d;
 
             if (playerIn instanceof ServerPlayer) {
                 if (playerIn.isPassenger()) {
@@ -450,10 +467,10 @@ public class TeleportationSpellItem extends SpellItem {
                     assert mount != null;
                     mount.ejectPassengers();
                     if (mount instanceof LivingEntity) {
-                        ((LivingEntity) mount).randomTeleport(tags.getDouble("x") + 0.5d, tags.getDouble("y") + 1.0d + OffsetY, tags.getDouble("z") + 0.5d, false);
+                        ((LivingEntity) mount).randomTeleport(destX + 0.5d, destY + 1.0d + OffsetY, destZ + 0.5d, false);
                     }
                 }
-                ((ServerPlayer) playerIn).teleportTo((ServerLevel) worldIn, tags.getDouble("x") + 0.5d, tags.getDouble("y") + 1.0d + OffsetY, tags.getDouble("z") + 0.5d, pYaw, playerIn.xRotO);
+                ((ServerPlayer) playerIn).teleportTo((ServerLevel) worldIn, destX + 0.5d, destY + 1.0d + OffsetY, destZ + 0.5d, pYaw, playerIn.xRotO);
             }
             playerIn.setDeltaMovement(playerIn.getDeltaMovement().scale(0.5));
 
@@ -463,8 +480,7 @@ public class TeleportationSpellItem extends SpellItem {
                 stack.shrink(1);
             }
         } else {
-            assert tags != null;
-            worldIn.playSound(playerIn,tags.getDouble("x"), tags.getDouble("y"), tags.getDouble("z"), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+            worldIn.playSound(playerIn,destX, destY, destZ, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
         }
     }
 
@@ -477,38 +493,38 @@ public class TeleportationSpellItem extends SpellItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, @NotNull List<Component> tooltip, @NotNull TooltipFlag flagIn) {
-        CompoundTag tags = stack.getTag();
+    public void appendHoverText(ItemStack stack, @NotNull Item.TooltipContext context, @NotNull List<Component> tooltip, @NotNull TooltipFlag flagIn) {
+        CompoundTag tags = readTags(stack);
 
-        if (tags == null || tags.isEmpty()) {
-            tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.unlinked"));
-            tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.right_click"));
+        if (tags.isEmpty()) {
+            tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.unlinked"));
+            tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.right_click"));
             if (Screen.hasShiftDown()){
-                tooltip.add(new TextComponent(""));
-                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".spell.lvl_required")
-                        .append(new TextComponent(
+                tooltip.add(Component.literal(""));
+                tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".spell.lvl_required")
+                        .append(Component.literal(
                         ChatFormatting.DARK_GREEN + (": " + REQUIRED_EXP_LEVEL))));
-                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".spell.exp_cost")
-                        .append(new TextComponent(
+                tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".spell.exp_cost")
+                        .append(Component.literal(
                                 ChatFormatting.GREEN + (": " + EXP_COST))));
             } else {
-                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".spell.shift"));
+                tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".spell.shift"));
             }
         } else {
             if (Screen.hasShiftDown()){
-                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.linked")
-                        .append(new TextComponent(ChatFormatting.BLUE + ": " + tags.getDouble("x") + " / " +
+                tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.linked")
+                        .append(Component.literal(ChatFormatting.BLUE + ": " + tags.getDouble("x") + " / " +
                                 tags.getDouble("y") + " / " + tags.getDouble("z"))));
-                tooltip.add(new TextComponent(""));
-                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".spell.lvl_required")
-                        .append(new TextComponent(
+                tooltip.add(Component.literal(""));
+                tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".spell.lvl_required")
+                        .append(Component.literal(
                                 ChatFormatting.DARK_GREEN + (": " + REQUIRED_EXP_LEVEL))));
-                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".spell.exp_cost")
-                        .append(new TextComponent(
+                tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".spell.exp_cost")
+                        .append(Component.literal(
                                 ChatFormatting.GREEN + (": " + EXP_COST))));
             } else {
-                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.linked"));
-                tooltip.add(new TranslatableComponent("tooltip." + MiltenMagic.MOD_ID + ".spell.shift"));
+                tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".teleportation_spell.linked"));
+                tooltip.add(Component.translatable("tooltip." + MiltenMagic.MOD_ID + ".spell.shift"));
             }
 
         }

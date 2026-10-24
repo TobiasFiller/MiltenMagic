@@ -2,8 +2,8 @@
   "credit": "Made with Blockbench",
   "ambientocclusion": false,
   "textures": {
-    "particle": "miltenmagic:blocks/swampweed",
-    "cross": "miltenmagic:blocks/swampweed"
+    "particle": "miltenmagic:block/swampweed",
+    "cross": "miltenmagic:block/swampweed"
   },
   "elements": [
     {

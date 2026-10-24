@@ -1,8 +1,8 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "miltenmagic:blocks/spruce_table",
-		"particle": "miltenmagic:blocks/spruce_table"
+		"0": "miltenmagic:block/spruce_table",
+		"particle": "miltenmagic:block/spruce_table"
 	},
 	"elements": [
 		{

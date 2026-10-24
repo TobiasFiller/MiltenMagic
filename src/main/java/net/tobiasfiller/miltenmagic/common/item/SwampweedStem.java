@@ -32,7 +32,14 @@ public class SwampweedStem extends Item {
     private final boolean isFoil;
 
     public SwampweedStem(int experiencePoints, int duration, float probability, boolean isFoil) {
-        super(new Item.Properties().tab(CostumCreativeModeTab.TAB_MILTEN_MAGIC).stacksTo(16));
+        super(new Item.Properties()
+                .stacksTo(16)
+                .food(new FoodProperties.Builder()
+                        .nutrition(1)
+                        .saturationModifier(0.1f)
+                        .effect(() -> new MobEffectInstance(MobEffects.CONFUSION, duration), probability)
+                        .alwaysEdible()
+                        .build()));
         this.experiencePoints = experiencePoints;
         this.probability = probability;
         this.duration = duration;
@@ -42,11 +49,6 @@ public class SwampweedStem extends Item {
     @Override
     public SoundEvent getEatingSound() {
         return SoundRegistry.SWAMPWEED_SMOKE.get();
-    }
-
-    @Override
-    public boolean isEdible() {
-        return true;
     }
 
     @Override
@@ -76,7 +78,7 @@ public class SwampweedStem extends Item {
     }
 
     @Override
-    public int getUseDuration(ItemStack pStack) {
+    public int getUseDuration(ItemStack pStack, LivingEntity entity) {
         return 64;
     }
 
@@ -86,14 +88,12 @@ public class SwampweedStem extends Item {
     }
 
     @Override
-    public void onUsingTick(ItemStack stack, LivingEntity player, int count) {
-        Level pLevel = player.getLevel();
+    public void onUseTick(Level level, LivingEntity player, ItemStack stack, int count) {
 
-
-        if (pLevel.isClientSide) {
+        if (level.isClientSide) {
 
             if (random.nextInt(15) == 0) {
-                pLevel.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE,
+                level.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE,
                         player.getX() + -0.25f + random.nextDouble() * 0.5f,
                         player.getY() + 1.0f,
                         player.getZ() + -0.25f + random.nextDouble() * 0.5f,
@@ -102,22 +102,11 @@ public class SwampweedStem extends Item {
                         -0.005f + random.nextDouble() * 0.01f);
             }
 
-            if (count % getUseDuration(stack)-30 == 0){
+            if (count % getUseDuration(stack, player)-30 == 0){
                 player.playSound(SoundRegistry.SWAMPWEED_SMOKE.get(),0.8f,0.9f + random.nextFloat() * 0.2f);
             }
 
         }
 
-    }
-
-    @Nullable
-    @Override
-    public FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
-        return new FoodProperties.Builder()
-                .nutrition(1)
-                .saturationMod(0.1f)
-                .effect(new MobEffectInstance(MobEffects.CONFUSION, duration), probability)
-                .alwaysEat()
-                .build();
     }
 }

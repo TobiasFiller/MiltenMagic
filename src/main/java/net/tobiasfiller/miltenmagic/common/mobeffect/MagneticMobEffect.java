@@ -23,19 +23,20 @@ public class MagneticMobEffect extends MobEffect {
     }
 
     @Override
-    public void applyEffectTick(LivingEntity pLivingEntity, int pAmplifier) {
-        Level level = pLivingEntity.getLevel();
+    public boolean applyEffectTick(LivingEntity pLivingEntity, int pAmplifier) {
+        Level level = pLivingEntity.level();
 
-        if (level.isClientSide()) return;
+        if (level.isClientSide()) return false;
 
         AABB area = new AABB(pLivingEntity.position().add(-DEFAULT_WIDTH + pAmplifier, -DEFAULT_WIDTH + pAmplifier, -DEFAULT_WIDTH + pAmplifier),
                 pLivingEntity.position().add(DEFAULT_WIDTH + pAmplifier, DEFAULT_WIDTH + pAmplifier, DEFAULT_WIDTH + pAmplifier));
 
         List<ItemEntity> items = level.getEntities(EntityType.ITEM, area,
                 item -> item.isAlive() && (!level.isClientSide || item.tickCount > 1) &&
-                        (item.getThrower() == null || !item.getThrower().equals(pLivingEntity.getUUID()) || !item.hasPickUpDelay()) &&
+                        (item.getOwner() == null || !item.getOwner().equals(pLivingEntity.getUUID()) || !item.hasPickUpDelay()) &&
                         !item.getItem().isEmpty() && !item.getPersistentData().contains("PreventRemoteMovement")
         );
         items.forEach(item -> item.setPos(pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ()));
+        return true;
     }
 }

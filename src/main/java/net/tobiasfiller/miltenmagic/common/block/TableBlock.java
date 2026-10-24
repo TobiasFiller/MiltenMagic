@@ -16,8 +16,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -43,8 +41,8 @@ public class TableBlock extends Block {
     public static final VoxelShape DOUBLE_SHAPE_EAST = Shapes.or(Block.box(6.0D, 2.0D, 0.0D, 10.0D, 6.0D, 12.0D), TABLETOP, LEG_SE,LEG_SW);
     public static final VoxelShape DOUBLE_SHAPE_SOUTH = Shapes.or(Block.box(4.0D, 2.0D, 6.0D, 16.0D, 6.0D, 10.0D), TABLETOP, LEG_NW,LEG_SW);
 
-    public TableBlock() {
-        super(BlockBehaviour.Properties.of(Material.WOOD, MaterialColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD));
+    public TableBlock(BlockBehaviour.Properties properties) {
+        super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
         this.registerDefaultState(this.stateDefinition.any().setValue(SIDE, 0));
     }
@@ -130,23 +128,23 @@ public class TableBlock extends Block {
                 switch (pState.getValue(FACING)) {
                     case NORTH:
                         if (pLevel.getBlockState(pPos.west()).is(this)) {
-                            pLevel.setBlock(pPos.west(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), 1);
+                            pLevel.setBlock(pPos.west(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), Block.UPDATE_ALL);
                         }
                         break;
 
                     case EAST:
                         if (pLevel.getBlockState(pPos.north()).is(this)) {
-                            pLevel.setBlock(pPos.north(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), 1);
+                            pLevel.setBlock(pPos.north(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), Block.UPDATE_ALL);
                         }
                         break;
                     case SOUTH:
                         if (pLevel.getBlockState(pPos.east()).is(this)) {
-                            pLevel.setBlock(pPos.east(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), 1);
+                            pLevel.setBlock(pPos.east(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), Block.UPDATE_ALL);
                         }
                         break;
                     case WEST:
                         if (pLevel.getBlockState(pPos.south()).is(this)) {
-                            pLevel.setBlock(pPos.south(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), 1);
+                            pLevel.setBlock(pPos.south(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), Block.UPDATE_ALL);
                         }
                         break;
                 }
@@ -155,22 +153,22 @@ public class TableBlock extends Block {
                 switch (pState.getValue(FACING)) {
                     case NORTH:
                         if (pLevel.getBlockState(pPos.east()).is(this)) {
-                            pLevel.setBlock(pPos.east(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), 1);
+                            pLevel.setBlock(pPos.east(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), Block.UPDATE_ALL);
                         }
                         break;
                     case EAST:
                         if (pLevel.getBlockState(pPos.south()).is(this)) {
-                            pLevel.setBlock(pPos.south(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), 1);
+                            pLevel.setBlock(pPos.south(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), Block.UPDATE_ALL);
                         }
                         break;
                     case SOUTH:
                         if (pLevel.getBlockState(pPos.west()).is(this)) {
-                            pLevel.setBlock(pPos.west(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), 1);
+                            pLevel.setBlock(pPos.west(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), Block.UPDATE_ALL);
                         }
                         break;
                     case WEST:
                         if (pLevel.getBlockState(pPos.north()).is(this)) {
-                            pLevel.setBlock(pPos.north(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), 1);
+                            pLevel.setBlock(pPos.north(), defaultBlockState().setValue(FACING, pState.getValue(FACING)), Block.UPDATE_ALL);
                         }
                         break;
                 }
@@ -192,30 +190,33 @@ public class TableBlock extends Block {
             return this.defaultBlockState().setValue(FACING, pContext.getHorizontalDirection().getOpposite());
         }
 
+        // NOTE: the flag must include Block.UPDATE_CLIENTS. With only UPDATE_NEIGHBORS the
+        // server-side state changes but the client is never told, so the already placed table
+        // keeps rendering as a single table until the chunk is re-sent.
         if (level.getBlockState(pContext.getClickedPos().north()).is(this)) {
             if (isSingle(level.getBlockState(pContext.getClickedPos().north()))) {
-                level.setBlock(pContext.getClickedPos().north(), getDoubleBlock(1, Direction.WEST), 1);
+                level.setBlock(pContext.getClickedPos().north(), getDoubleBlock(1, Direction.WEST), Block.UPDATE_ALL);
                 return getDoubleBlock(2, Direction.WEST);
             }
         }
 
         if (level.getBlockState(pContext.getClickedPos().east()).is(this)) {
             if (isSingle(level.getBlockState(pContext.getClickedPos().east()))) {
-                level.setBlock(pContext.getClickedPos().east(), getDoubleBlock(1, Direction.NORTH), 1);
+                level.setBlock(pContext.getClickedPos().east(), getDoubleBlock(1, Direction.NORTH), Block.UPDATE_ALL);
                 return getDoubleBlock(2, Direction.NORTH);
             }
         }
 
         if (level.getBlockState(pContext.getClickedPos().south()).is(this)) {
             if (isSingle(level.getBlockState(pContext.getClickedPos().south()))) {
-                level.setBlock(pContext.getClickedPos().south(), getDoubleBlock(1, Direction.EAST), 1);
+                level.setBlock(pContext.getClickedPos().south(), getDoubleBlock(1, Direction.EAST), Block.UPDATE_ALL);
                 return getDoubleBlock(2, Direction.EAST);
             }
         }
 
         if (level.getBlockState(pContext.getClickedPos().west()).is(this)) {
             if (isSingle(level.getBlockState(pContext.getClickedPos().west()))) {
-                level.setBlock(pContext.getClickedPos().west(), getDoubleBlock(1, Direction.SOUTH), 1);
+                level.setBlock(pContext.getClickedPos().west(), getDoubleBlock(1, Direction.SOUTH), Block.UPDATE_ALL);
                 return getDoubleBlock(2, Direction.SOUTH);
             }
         }
@@ -237,5 +238,10 @@ public class TableBlock extends Block {
 
     public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
+    }
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends Block> codec() {
+        return simpleCodec(TableBlock::new);
     }
 }

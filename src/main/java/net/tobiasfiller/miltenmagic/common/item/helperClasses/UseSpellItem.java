@@ -1,6 +1,6 @@
 package net.tobiasfiller.miltenmagic.common.item.helperClasses;
 
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -43,12 +43,12 @@ public class UseSpellItem extends SpellItem {
         if (pPlayer.isCreative() || pPlayer.experienceLevel >= REQUIRED_EXP_LEVEL) {
             pPlayer.startUsingItem(pUsedHand);
         } else {
-            pPlayer.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
+            pPlayer.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
         }
         return InteractionResultHolder.fail(stack);
     }
 
-    public int getUseDuration(ItemStack pStack) {
+    public int getUseDuration(ItemStack pStack, LivingEntity entity) {
         return USE_DURATION;
     }
 

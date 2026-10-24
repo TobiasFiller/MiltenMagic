@@ -1,13 +1,14 @@
 package net.tobiasfiller.miltenmagic.common.item.helperClasses;
 
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
@@ -22,17 +23,17 @@ public class BuffSpellItem extends SpellItem {
 
     public static final int USE_DURATION = 100;
 
-    protected final Supplier<MobEffect> mobEffect;
+    protected final Supplier<? extends Holder<MobEffect>> mobEffect;
     protected final int effectDuration;
     protected final int effectAmplifier;
 
     protected boolean visible;
 
-    public BuffSpellItem(Supplier<MobEffect> mobEffect, int effectDuration, int effectAmplifier, int required_exp_level, int exp_cost) {
+    public BuffSpellItem(Supplier<? extends Holder<MobEffect>> mobEffect, int effectDuration, int effectAmplifier, int required_exp_level, int exp_cost) {
         this(mobEffect,effectDuration,effectAmplifier,required_exp_level,exp_cost,true);
     }
 
-    public BuffSpellItem(Supplier<MobEffect> mobEffect, int effectDuration, int effectAmplifier, int required_exp_level, int exp_cost, boolean visible) {
+    public BuffSpellItem(Supplier<? extends Holder<MobEffect>> mobEffect, int effectDuration, int effectAmplifier, int required_exp_level, int exp_cost, boolean visible) {
         super(required_exp_level,exp_cost,300, true);
         this.mobEffect = mobEffect;
         this.effectDuration = effectDuration;
@@ -40,14 +41,13 @@ public class BuffSpellItem extends SpellItem {
         this.visible = visible;
     }
 
-    public MobEffect getMobEffect() {
+    public Holder<MobEffect> getMobEffect() {
         return mobEffect.get();
     }
 
     public int getEffectDuration() {
         return effectDuration;
     }
-
 
 
     public int getEffectAmplifier(){
@@ -70,7 +70,7 @@ public class BuffSpellItem extends SpellItem {
 
             return InteractionResultHolder.consume(stack);
         } else {
-            pPlayer.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
+            pPlayer.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
         }
         return InteractionResultHolder.fail(stack);
     }
@@ -88,7 +88,7 @@ public class BuffSpellItem extends SpellItem {
 
             return InteractionResult.CONSUME;
         } else {
-            pPlayer.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
+            pPlayer.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
         }
         return InteractionResult.FAIL;
     }
@@ -99,7 +99,7 @@ public class BuffSpellItem extends SpellItem {
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack) {
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         return USE_DURATION;
     }
 

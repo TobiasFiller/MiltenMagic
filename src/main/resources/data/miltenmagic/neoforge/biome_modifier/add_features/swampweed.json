@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#miltenmagic:is_swamp",
+  "features": "miltenmagic:patch_swampweed",
+  "step": "vegetal_decoration"
+}

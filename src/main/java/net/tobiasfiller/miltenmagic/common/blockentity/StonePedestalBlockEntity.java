@@ -1,50 +1,68 @@
 package net.tobiasfiller.miltenmagic.common.blockentity;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.tobiasfiller.miltenmagic.core.registry.BlockEntityRegistry;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
 
-//todo fix desynce bug when reloading a Pedestal that is already holding an Item
-//todo fix tool durability bug
-
 public class StonePedestalBlockEntity extends BlockEntity {
-    protected ItemStackHandler itemHandler = new ItemStackHandler(1) {
+    protected final ItemStackHandler itemHandler = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            // also push the new content to the client; without this the client-side block
+            // entity keeps an empty handler and the renderer never shows the held item
+            if (StonePedestalBlockEntity.this.level != null
+                    && !StonePedestalBlockEntity.this.level.isClientSide) {
+                StonePedestalBlockEntity.this.level.sendBlockUpdated(
+                        StonePedestalBlockEntity.this.worldPosition,
+                        StonePedestalBlockEntity.this.getBlockState(),
+                        StonePedestalBlockEntity.this.getBlockState(),
+                        Block.UPDATE_CLIENTS);
+            }
         }
     };
-    protected LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
-    private float age = 0.0f;
-    public final float bobOffs;
-    private final Random random = new Random();;
 
+    public final float bobOffs;
+    private float age = 0.0f;
+    private final Random random = new Random();
 
     public StonePedestalBlockEntity(BlockPos pWorldPosition, BlockState pBlockState) {
         super(BlockEntityRegistry.STONE_PEDESTAL_BLOCK_ENTITY.get(), pWorldPosition, pBlockState);
         this.bobOffs = this.random.nextFloat() * (float)Math.PI * 2.0F;
     }
 
+    /**
+     * Exposed for the capability provider registered in
+     * {@link net.tobiasfiller.miltenmagic.core.registry.CapabilityRegistry}.
+     */
+    public IItemHandler getItemHandler() {
+        return this.itemHandler;
+    }
+
     public boolean setItem(ItemStack stack){
         if (this.itemHandler.getStackInSlot(0).isEmpty()){
-            stack = new ItemStack(stack.getItem(),1);
-            this.itemHandler.setStackInSlot(0,stack);
+            // copy() keeps every DataComponent (CUSTOM_DATA holds the teleport link,
+            // enchantments, custom names, damage, ...). Building a fresh
+            // `new ItemStack(stack.getItem(), 1)` would keep only the item type and
+            // silently strip all of them.
+            ItemStack stored = stack.copy();
+            stored.setCount(1);
+            this.itemHandler.setStackInSlot(0, stored);
             return true;
         }
         return false;
@@ -72,39 +90,32 @@ public class StonePedestalBlockEntity extends BlockEntity {
         return (this.age) + this.bobOffs;
     }
 
-    @NotNull
+    /**
+     * In 1.21.1 {@link BlockEntity#getUpdateTag} and {@link BlockEntity#getUpdatePacket}
+     * are deliberately no-ops (they return an empty tag / null). Forge 1.18.2 filled these
+     * in for you, so without overriding them the client-side block entity stays empty and
+     * the renderer draws nothing until the player clicks the pedestal.
+     */
     @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-
-        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY){
-            return lazyItemHandler.cast();
-        }
-        return super.getCapability(cap, side);
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveCustomOnly(registries);
     }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
-        lazyItemHandler = LazyOptional.of(() -> itemHandler);
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        lazyItemHandler.invalidate();
+    protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
+        nbt.put("inventory", itemHandler.serializeNBT(registries));
+        super.saveAdditional(nbt, registries);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag nbt) {
-        nbt.put("inventory", itemHandler.serializeNBT());
-
-        super.saveAdditional(nbt);
-    }
-
-    @Override
-    public void load(CompoundTag nbt) {
-        super.load(nbt);
-        itemHandler.deserializeNBT(nbt.getCompound("inventory"));
+    protected void loadAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
+        super.loadAdditional(nbt, registries);
+        itemHandler.deserializeNBT(registries, nbt.getCompound("inventory"));
     }
 
     public void drops() {

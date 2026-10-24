@@ -19,13 +19,13 @@ public class LevitationSpell extends UseSpellItem {
     }
 
     @Override
-    public void onUsingTick(ItemStack stack, LivingEntity player, int count) {
+    public void onUseTick(Level level, LivingEntity player, ItemStack stack, int count) {
         if (player instanceof Player pPlayer && pPlayer.experienceLevel >= REQUIRED_EXP_LEVEL) {
             pPlayer.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 1, 1));
 
-            Level pLevel = pPlayer.getLevel();
+            Level pLevel = level;
 
-            if (pLevel.isClientSide()) {
+            if (level.isClientSide) {
 
                 double offset = 1.7d;
                 double speed = 0.05d;
@@ -34,7 +34,7 @@ public class LevitationSpell extends UseSpellItem {
                 double rY = random.nextDouble() * 0.2;
                 double rZ = (random.nextDouble() - 0.5) * offset;
 
-                pLevel.addParticle(random.nextBoolean() ? ParticleTypes.ENCHANT : ParticleTypes.END_ROD,
+                level.addParticle(random.nextBoolean() ? ParticleTypes.ENCHANT : ParticleTypes.END_ROD,
                         pPlayer.getX() + rX,
                         pPlayer.getY() + rY,
                         pPlayer.getZ() + rZ,

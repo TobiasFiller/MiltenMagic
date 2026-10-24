@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "miltenmagic:items/swampweed_small"
+    "layer0": "miltenmagic:item/swampweed_small"
   }
 }

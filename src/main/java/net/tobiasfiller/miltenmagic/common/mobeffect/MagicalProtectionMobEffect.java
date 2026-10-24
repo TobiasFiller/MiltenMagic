@@ -21,8 +21,8 @@ public class MagicalProtectionMobEffect extends MobEffect {
     }
 
     @Override
-    public void applyEffectTick(LivingEntity pLivingEntity, int pAmplifier) {
-        Level level = pLivingEntity.getLevel();
+    public boolean applyEffectTick(LivingEntity pLivingEntity, int pAmplifier) {
+        Level level = pLivingEntity.level();
         if (level.isClientSide){
             double offset = 1;
 
@@ -34,6 +34,6 @@ public class MagicalProtectionMobEffect extends MobEffect {
                         0, 0, 0);
             }
         }
-
+        return true;
     }
 }

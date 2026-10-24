@@ -1,9 +1,9 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"particle": "miltenmagic:blocks/stone_pedestal_side",
-		"side": "miltenmagic:blocks/stone_pedestal_side",
-		"top": "miltenmagic:blocks/stone_pedestal_top"
+		"particle": "miltenmagic:block/stone_pedestal_side",
+		"side": "miltenmagic:block/stone_pedestal_side",
+		"top": "miltenmagic:block/stone_pedestal_top"
 	},
 	"elements": [
 		{

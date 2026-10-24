@@ -1,7 +1,7 @@
 package net.tobiasfiller.miltenmagic.common.item.spellItems;
 
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -10,7 +10,6 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
@@ -27,7 +26,7 @@ public class FireArrowSpell extends SpellItem {
         super(required_exp_level, exp_cost,10, true);
     }
 
-    public int getUseDuration(ItemStack pStack) {
+    public int getUseDuration(ItemStack pStack, LivingEntity entity) {
         return 72000;
     }
 
@@ -36,13 +35,12 @@ public class FireArrowSpell extends SpellItem {
     }
 
     @Override
-    public void onUsingTick(ItemStack stack, LivingEntity player, int count) {
-        Level pLevel = player.getLevel();
+    public void onUseTick(Level level, LivingEntity player, ItemStack stack, int count) {
 
-        int ii = this.getUseDuration(stack) - count;
+        int ii = this.getUseDuration(stack, player) - count;
         ii -= MIN_USE_DURATION;
 
-        if (pLevel.isClientSide()) {
+        if (level.isClientSide) {
 
             double offset = 2.0;
             double speed = 0.1d;
@@ -51,7 +49,7 @@ public class FireArrowSpell extends SpellItem {
             double rY = random.nextDouble() * 2;
             double rZ = (random.nextDouble() - 0.5) * offset;
 
-            pLevel.addParticle(ParticleTypes.SMALL_FLAME,
+            level.addParticle(ParticleTypes.SMALL_FLAME,
                     player.getX() + rX,
                     player.getY() + rY,
                     player.getZ() + rZ,
@@ -73,7 +71,7 @@ public class FireArrowSpell extends SpellItem {
 
             return InteractionResultHolder.consume(stack);
         } else {
-            pPlayer.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
+            pPlayer.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
         }
         return InteractionResultHolder.fail(stack);
     }
@@ -82,7 +80,7 @@ public class FireArrowSpell extends SpellItem {
     public void releaseUsing(ItemStack pStack, Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
         if (pLivingEntity instanceof Player pPlayer) {
 
-            int i = this.getUseDuration(pStack) - pTimeCharged;
+            int i = this.getUseDuration(pStack, pLivingEntity) - pTimeCharged;
 
             if (i < MIN_USE_DURATION) return;
 

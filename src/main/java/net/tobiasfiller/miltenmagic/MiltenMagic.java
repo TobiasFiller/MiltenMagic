@@ -1,43 +1,42 @@
 package net.tobiasfiller.miltenmagic;
 
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import com.mojang.logging.LogUtils;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.tobiasfiller.miltenmagic.common.item.CostumCreativeModeTab;
 import net.tobiasfiller.miltenmagic.core.registry.*;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
-// The value here should match an entry in the META-INF/mods.toml file
 @Mod(MiltenMagic.MOD_ID)
 public class MiltenMagic {
-    // Directly reference a log4j logger.
-    public static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
     public static final String MOD_ID = "miltenmagic";
-    IEventBus bus;
 
-    public MiltenMagic() {
-        this.bus = FMLJavaModLoadingContext.get().getModEventBus();
+    public MiltenMagic(IEventBus modBus, ModContainer modContainer) {
+        modBus.addListener(this::setup);
 
-        bus.addListener(this::setup);
+        ItemRegistry.ITEMS.register(modBus);
+        BlockRegistry.BLOCKS.register(modBus);
+        BlockEntityRegistry.BLOCK_ENTITIES.register(modBus);
+        EntityRegistry.ENTITY_TYPES.register(modBus);
+        MobEffectRegistry.MOB_EFFECT.register(modBus);
+        ParticleRegistry.PARTICLES.register(modBus);
+        SoundRegistry.SOUND_EVENTS.register(modBus);
+        VillagerRegistry.POI_TYPES.register(modBus);
+        VillagerRegistry.VILLAGER_PROFESSIONS.register(modBus);
+        CostumCreativeModeTab.CREATIVE_MODE_TABS.register(modBus);
 
-        //Mod Registry's
-        ItemRegistry.ITEMS.register(bus);
-        BlockRegistry.BLOCKS.register(bus);
-        BlockEntityRegistry.BLOCK_ENTITIES.register(bus);
-        EntityRegistry.ENTITY_TYPES.register(bus);
-        MobEffectRegistry.MOB_EFFECT.register(bus);
-        ParticleRegistry.PARTICLES.register(bus);
-        SoundRegistry.SOUND_EVENTS.register(bus);
-        VillagerRegistry.POI_TYPES.register(bus);
-        VillagerRegistry.VILLAGER_PROFESSIONS.register(bus);
+        // The swampweed configured/placed feature is datapack-driven (see
+        // data/miltenmagic/worldgen/...), because worldgen registries cannot be
+        // populated from code since 1.21.
 
-        // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(this);
+        // No NeoForge.EVENT_BUS.register(this) here: this class declares no
+        // @SubscribeEvent methods and the event bus rejects listener classes without any.
     }
 
     private void setup(final FMLCommonSetupEvent event) {
-        event.enqueueWork(VillagerRegistry::registerPOIs);
+        LOGGER.info("MiltenMagic common setup");
     }
 }

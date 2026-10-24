@@ -3,9 +3,11 @@ package net.tobiasfiller.miltenmagic.common.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -15,7 +17,6 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -25,11 +26,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class StonePedestalBlock extends BaseEntityBlock {
 
-
     public static final VoxelShape SHAPE = Shapes.or(Block.box(0.0D, 0.0D, 0.0D, 16.0D, 4.0D, 16.0D), Block.box(4.0D, 4.0D, 4.0D, 12.0D, 12.0D, 12.0D), Block.box(2.0D, 12.0D, 2.0D, 14.0D, 16.0D, 14.0D));
 
-    public StonePedestalBlock() {
-        super(BlockBehaviour.Properties.of(Material.STONE).destroyTime(1.2f).sound(SoundType.STONE));
+    public StonePedestalBlock(BlockBehaviour.Properties properties) {
+        super(properties);
     }
 
     @Nullable
@@ -60,35 +60,56 @@ public class StonePedestalBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        ItemStack stack = pPlayer.getItemInHand(pHand);
-
+    public InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHit) {
         BlockEntity blockEntity = pLevel.getBlockEntity(pPos);
         if (blockEntity instanceof StonePedestalBlockEntity stonePedestalBlockEntity) {
-            if (stack.isEmpty()) {
-                pPlayer.setItemInHand(pHand, stonePedestalBlockEntity.getAndRemoveItem());
-                return InteractionResult.SUCCESS;
+            // Only hand the item over when the pedestal actually holds something.
+            // Calling setItemInHand with ItemStack.EMPTY unconditionally wiped the
+            // player's held item whenever they clicked an empty pedestal.
+            if (stonePedestalBlockEntity.getItemHandler().getStackInSlot(0).isEmpty()) {
+                return InteractionResult.PASS;
             }
+            pPlayer.setItemInHand(InteractionHand.MAIN_HAND, stonePedestalBlockEntity.getAndRemoveItem());
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
+    }
 
-            if (stack.is(stonePedestalBlockEntity.getItem())){
+    @Override
+    public ItemInteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        BlockEntity blockEntity = pLevel.getBlockEntity(pPos);
+        if (blockEntity instanceof StonePedestalBlockEntity stonePedestalBlockEntity) {
+            if (pStack.is(stonePedestalBlockEntity.getItem())){
                 if (!pPlayer.isCreative()) {
-                    if (stack.getMaxStackSize() > stack.getCount()) {
-                        stack.grow(1);
+                    if (pStack.getMaxStackSize() > pStack.getCount()) {
+                        pStack.grow(1);
                     } else {
-                        pLevel.addFreshEntity(new ItemEntity(pLevel,pPos.getX() + 0.5d,pPos.getY() + 1d,pPos.getZ() + 0.5d,new ItemStack(stonePedestalBlockEntity.getItem())));
+                        // hand back the stored stack itself, so components (e.g. a linked teleport
+                    // scroll in CUSTOM_DATA) survive instead of being rebuilt from the item type
+                    ItemStack stored = stonePedestalBlockEntity.getItemHandler().getStackInSlot(0);
+                    pLevel.addFreshEntity(new ItemEntity(pLevel,
+                            pPos.getX() + 0.5d, pPos.getY() + 1d, pPos.getZ() + 0.5d, stored));
                     }
                 }
-                    stonePedestalBlockEntity.removeItem();
-                    return InteractionResult.SUCCESS;
-
+                stonePedestalBlockEntity.removeItem();
+                return ItemInteractionResult.SUCCESS;
             }
 
-            boolean result = stonePedestalBlockEntity.setItem(stack);
-            if (result && !pPlayer.isCreative()) {
-                stack.shrink(1);
-                return InteractionResult.SUCCESS;
+            boolean result = stonePedestalBlockEntity.setItem(pStack);
+            if (result) {
+                if (!pPlayer.isCreative()) {
+                    pStack.shrink(1);
+                }
+                return ItemInteractionResult.SUCCESS;
             }
         }
-        return InteractionResult.SUCCESS;
+        // Nothing was stored: let the vanilla/item interaction continue instead of
+        // swallowing the click (consumesAction() would short-circuit the game mode).
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends BaseEntityBlock> codec() {
+        return simpleCodec(StonePedestalBlock::new);
     }
 }

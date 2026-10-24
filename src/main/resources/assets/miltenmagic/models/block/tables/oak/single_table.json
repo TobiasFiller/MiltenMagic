@@ -1,8 +1,8 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "miltenmagic:blocks/oak_table",
-		"particle": "miltenmagic:blocks/oak_table"
+		"0": "miltenmagic:block/oak_table",
+		"particle": "miltenmagic:block/oak_table"
 	},
 	"elements": [
 		{

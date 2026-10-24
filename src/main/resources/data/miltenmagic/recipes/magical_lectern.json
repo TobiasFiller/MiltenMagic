@@ -17,7 +17,7 @@
         }
     },
     "result": {
-        "item": "miltenmagic:magical_lectern",
+        "id": "miltenmagic:magical_lectern",
         "count": 1
     }
 }

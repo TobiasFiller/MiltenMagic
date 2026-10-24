@@ -19,12 +19,11 @@ public class FireRainSpell extends UseSpellItem {
     private static final int POWER_STEP_SIZE = 10;
 
     @Override
-    public void onUsingTick(ItemStack stack, LivingEntity player, int count) {
-        Level level = player.getLevel();
-        int realCount = getUseDuration(stack) - count;
+    public void onUseTick(Level level, LivingEntity player, ItemStack stack, int count) {
+        int realCount = getUseDuration(stack, player) - count;
         int maxA = 15;
         int baseA = 2;
-        int a = Math.min(baseA + Math.abs(realCount / 20), maxA); // half the Size of the area
+        int a = Math.min(baseA + Math.abs(realCount / 20), maxA);
 
         if (!level.isClientSide) {
 
@@ -38,9 +37,9 @@ public class FireRainSpell extends UseSpellItem {
 
             for (LivingEntity livingEntity : livingEntities) {
                 if (!livingEntity.equals(player) && random.nextDouble() < 0.3d && realCount > 5) {
-                    livingEntity.hurt(DamageSource.ON_FIRE, 4);
+                    livingEntity.hurt(level.damageSources().onFire(), 4);
                     if (!livingEntity.isOnFire()) {
-                        livingEntity.setSecondsOnFire(4);
+                        livingEntity.igniteForSeconds(4);
                     }
                 }
             }

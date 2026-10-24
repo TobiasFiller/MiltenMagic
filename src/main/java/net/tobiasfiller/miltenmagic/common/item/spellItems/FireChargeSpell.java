@@ -1,7 +1,7 @@
 package net.tobiasfiller.miltenmagic.common.item.spellItems;
 
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -10,7 +10,6 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Fireball;
 import net.minecraft.world.entity.projectile.LargeFireball;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
@@ -30,7 +29,7 @@ public class FireChargeSpell extends SpellItem {
         super(required_exp_level, exp_cost, true);
     }
 
-    public int getUseDuration(ItemStack pStack) {
+    public int getUseDuration(ItemStack pStack, LivingEntity entity) {
         return 72000;
     }
 
@@ -39,18 +38,17 @@ public class FireChargeSpell extends SpellItem {
     }
 
     @Override
-    public void onUsingTick(ItemStack pStack, LivingEntity player, int count) {
+    public void onUseTick(Level level, LivingEntity player, ItemStack pStack, int count) {
         if (player instanceof Player pPlayer) {
-            Level pLevel = player.getLevel();
 
-            int ii = this.getUseDuration(pStack) - count;
+            int ii = this.getUseDuration(pStack, player) - count;
             ii -= MIN_USE_DURATION;
 
             if (ii < 0) {
                 ii = -1;
             }
 
-            if (pLevel.isClientSide()) {
+            if (level.isClientSide) {
 
                 double offset = 2.0;
                 double speed = 0.1d;
@@ -61,7 +59,7 @@ public class FireChargeSpell extends SpellItem {
                     double rY = random.nextDouble() * 2;
                     double rZ = (random.nextDouble() - 0.5) * offset;
 
-                    pLevel.addParticle(random.nextBoolean() ? ParticleTypes.SMALL_FLAME : ParticleTypes.FLAME,
+                    level.addParticle(random.nextBoolean() ? ParticleTypes.SMALL_FLAME : ParticleTypes.FLAME,
                             pPlayer.getX() + rX,
                             pPlayer.getY() + rY,
                             pPlayer.getZ() + rZ,
@@ -94,7 +92,7 @@ public class FireChargeSpell extends SpellItem {
     public void releaseUsing(ItemStack pStack, Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
         if (pLivingEntity instanceof Player pPlayer) {
 
-            int i = this.getUseDuration(pStack) - pTimeCharged;
+            int i = this.getUseDuration(pStack, pLivingEntity) - pTimeCharged;
 
             if (i < MIN_USE_DURATION) return;
 
@@ -111,20 +109,18 @@ public class FireChargeSpell extends SpellItem {
 
             return InteractionResultHolder.consume(stack);
         } else {
-            pPlayer.displayClientMessage(new TranslatableComponent("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
+            pPlayer.displayClientMessage(Component.translatable("message." + MiltenMagic.MOD_ID + ".spell.not_enough_exp"), true);
         }
         return InteractionResultHolder.fail(stack);
     }
 
     protected void spawnFireCharge(Level pLevel, Player pPlayer, ItemStack stack, int pCharge) {
         if (!pLevel.isClientSide) {
-            Fireball fireball =
+            LargeFireball fireball =
                     new LargeFireball(pLevel,
                             pPlayer,
-                            pPlayer.getLookAngle().x,
-                            pPlayer.getLookAngle().y,
-                            pPlayer.getLookAngle().z,
-                            getPowerForTime(pCharge)); // explosion radius
+                            pPlayer.getLookAngle(),
+                            getPowerForTime(pCharge));
 
             fireball.setPos(fireball.getX(), fireball.getY() + 1d, fireball.getZ());
             fireball.shoot(pPlayer.getLookAngle().x, pPlayer.getLookAngle().y, pPlayer.getLookAngle().z, 1, 0.01f);

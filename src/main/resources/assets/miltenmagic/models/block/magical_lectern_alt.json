@@ -2,13 +2,13 @@
 	"credit": "Made with Blockbench",
 	"parent": "block/block",
 	"textures": {
-		"0": "miltenmagic:blocks/magical_lectern_1",
-		"1": "miltenmagic:blocks/magical_lectern_2",
-		"2": "miltenmagic:blocks/magical_lectern_3",
-		"3": "miltenmagic:blocks/magical_lectern_4",
-		"4": "miltenmagic:blocks/magical_lectern_5",
-		"5": "miltenmagic:blocks/magical_lectern_6",
-		"particle": "miltenmagic:blocks/magical_lectern_1"
+		"0": "miltenmagic:block/magical_lectern_1",
+		"1": "miltenmagic:block/magical_lectern_2",
+		"2": "miltenmagic:block/magical_lectern_3",
+		"3": "miltenmagic:block/magical_lectern_4",
+		"4": "miltenmagic:block/magical_lectern_5",
+		"5": "miltenmagic:block/magical_lectern_6",
+		"particle": "miltenmagic:block/magical_lectern_1"
 	},
 	"elements": [
 		{

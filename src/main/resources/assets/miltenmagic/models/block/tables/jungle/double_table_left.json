@@ -1,8 +1,8 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "miltenmagic:blocks/jungle_table",
-		"particle": "miltenmagic:blocks/jungle_table"
+		"0": "miltenmagic:block/jungle_table",
+		"particle": "miltenmagic:block/jungle_table"
 	},
 	"elements": [
 		{

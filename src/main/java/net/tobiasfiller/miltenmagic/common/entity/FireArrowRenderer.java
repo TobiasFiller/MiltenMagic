@@ -6,7 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tobiasfiller.miltenmagic.MiltenMagic;
 
 public class FireArrowRenderer extends ArrowRenderer<FireArrowEntity> {
-    public static final ResourceLocation TEXTURE = new ResourceLocation(MiltenMagic.MOD_ID, "textures/entity/fire_arrow.png");
+    public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(MiltenMagic.MOD_ID, "textures/entity/fire_arrow.png");
 
     public FireArrowRenderer(EntityRendererProvider.Context manager) {
         super(manager);

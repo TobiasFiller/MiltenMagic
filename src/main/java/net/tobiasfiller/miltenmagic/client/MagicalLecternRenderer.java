@@ -2,7 +2,7 @@ package net.tobiasfiller.miltenmagic.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.model.BookModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -29,12 +29,12 @@ public class MagicalLecternRenderer implements BlockEntityRenderer<MagicalLecter
         pPoseStack.translate(0.5D, 1.0625D, 0.5D);
         pPoseStack.scale(0.95f,0.95f,0.95f);
         float f = blockstate.getValue(LecternBlock.FACING).getClockWise().toYRot();
-        pPoseStack.mulPose(Vector3f.YP.rotationDegrees(-f));
-        pPoseStack.mulPose(Vector3f.ZP.rotationDegrees(67.5F));
+        pPoseStack.mulPose(Axis.YP.rotationDegrees(-f));
+        pPoseStack.mulPose(Axis.ZP.rotationDegrees(67.5F));
         pPoseStack.translate(0.215D, 0.01D, 0.0D);
         this.bookModel.setupAnim(0.0F, 0.1F, 0.9F, 1.2F);
         VertexConsumer vertexconsumer = EnchantTableRenderer.BOOK_LOCATION.buffer(pBufferSource, RenderType::entitySolid);
-        this.bookModel.render(pPoseStack, vertexconsumer, pPackedLight, pPackedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);
+        this.bookModel.render(pPoseStack, vertexconsumer, pPackedLight, pPackedOverlay, -1);
         pPoseStack.popPose();
     }
 }

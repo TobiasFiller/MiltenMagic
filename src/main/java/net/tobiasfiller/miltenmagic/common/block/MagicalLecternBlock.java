@@ -2,28 +2,19 @@ package net.tobiasfiller.miltenmagic.common.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.tobiasfiller.miltenmagic.common.blockentity.MagicalLecternBlockEntity;
-
-import javax.annotation.Nullable;
 
 public class MagicalLecternBlock extends BaseEntityBlock {
 
@@ -39,31 +30,37 @@ public class MagicalLecternBlock extends BaseEntityBlock {
     public static final VoxelShape SHAPE_EAST = Shapes.or(Block.box(10.666667D, 14.0D, 1.0D, 15.0D, 18.0D, 15.0D), Block.box(6.333333D, 16.0D, 1.0D, 10.666667D, 20.0D, 15.0D), Block.box(2.0D, 18.0D, 1.0D, 6.333333D, 22.0D, 15.0D), SHAPE_COMMON);
     public static final VoxelShape SHAPE_SOUTH = Shapes.or(Block.box(1.0D, 14.0D, 10.666667D, 15.0D, 18.0D, 15.0D), Block.box(1.0D, 16.0D, 6.333333D, 15.0D, 20.0D, 10.666667D), Block.box(1.0D, 18.0D, 2.0D, 15.0D, 22.0D, 6.333333D), SHAPE_COMMON);
 
-    public MagicalLecternBlock() {
-        super(BlockBehaviour.Properties.of(Material.METAL).strength(2.5F).sound(SoundType.METAL).noOcclusion());
+    public MagicalLecternBlock(BlockBehaviour.Properties properties) {
+        super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
+    @Override
     public BlockState getStateForPlacement(BlockPlaceContext pContext) {
         return this.defaultBlockState().setValue(FACING, pContext.getHorizontalDirection().getOpposite());
     }
 
+    @Override
     public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
     }
 
+    @Override
     public VoxelShape getOcclusionShape(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
         return SHAPE_COMMON;
     }
 
+    @Override
     public boolean useShapeForLightOcclusion(BlockState pState) {
         return true;
     }
 
+    @Override
     public VoxelShape getCollisionShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE_COLLISION;
     }
 
+    @Override
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         switch((Direction)pState.getValue(FACING)) {
             case NORTH:
@@ -79,11 +76,17 @@ public class MagicalLecternBlock extends BaseEntityBlock {
         }
     }
 
+    @Override
     public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
         return new MagicalLecternBlockEntity(pPos, pState);
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
         pBuilder.add(FACING);
+    }
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends BaseEntityBlock> codec() {
+        return simpleCodec(MagicalLecternBlock::new);
     }
 }

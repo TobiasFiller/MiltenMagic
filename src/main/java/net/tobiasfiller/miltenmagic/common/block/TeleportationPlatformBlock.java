@@ -13,8 +13,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -27,17 +26,14 @@ public class TeleportationPlatformBlock extends Block {
 
     private static final List<Integer> isLapis = Arrays.asList(5, 16, 17, 20, 21);
 
-    public TeleportationPlatformBlock() {
-        super(BlockBehaviour.Properties.of(Material.STONE, MaterialColor.STONE)
-                .strength(1.5F, 6.0F)
-                .sound(SoundType.STONE)
-        );
+    public TeleportationPlatformBlock(BlockBehaviour.Properties properties) {
+        super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(TILENUMBER, 10));
         this.registerDefaultState(this.stateDefinition.any().setValue(TILEMAT, 1));
     }
 
     @Override
-    public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, Random random) {
+    public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, RandomSource random) {
 
         if (random.nextInt() % 3 == 0) {
 
@@ -163,5 +159,8 @@ public class TeleportationPlatformBlock extends Block {
         }
     }
 
-
+    @Override
+    public com.mojang.serialization.MapCodec<? extends Block> codec() {
+        return simpleCodec(TeleportationPlatformBlock::new);
+    }
 }

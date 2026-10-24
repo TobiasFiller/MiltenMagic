@@ -1,17 +1,16 @@
 package net.tobiasfiller.miltenmagic.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.tobiasfiller.miltenmagic.MiltenMagic;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.tobiasfiller.miltenmagic.common.blockentity.StonePedestalBlockEntity;
 
 @OnlyIn(Dist.CLIENT)
@@ -30,8 +29,8 @@ public class StonePedestalRenderer implements BlockEntityRenderer<StonePedestalB
             pPoseStack.translate(0.5D, 1.3225D, 0.5D);
             pPoseStack.scale(0.6f,0.6f,0.6f);
             float f3 = pBlockEntity.getSpin(pPartialTick);
-            pPoseStack.mulPose(Vector3f.YP.rotationDegrees(f3));
-            itemRenderer.renderStatic(Minecraft.getInstance().player,stack, ItemTransforms.TransformType.FIXED,false,pPoseStack,pBufferSource,Minecraft.getInstance().level,pPackedLight,pPackedOverlay,0);
+            pPoseStack.mulPose(Axis.YP.rotationDegrees(f3));
+            itemRenderer.renderStatic(Minecraft.getInstance().player,stack, ItemDisplayContext.FIXED,false,pPoseStack,pBufferSource,Minecraft.getInstance().level,pPackedLight,pPackedOverlay,0);
             pPoseStack.popPose();
         }
     }

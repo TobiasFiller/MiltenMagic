@@ -1,8 +1,8 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "miltenmagic:blocks/birch_table",
-		"particle": "miltenmagic:blocks/birch_table"
+		"0": "miltenmagic:block/birch_table",
+		"particle": "miltenmagic:block/birch_table"
 	},
 	"elements": [
 		{
