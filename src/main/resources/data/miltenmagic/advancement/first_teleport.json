@@ -10,7 +10,7 @@
       "translate": "advancement.miltenmagic.first_teleport.description"
     },
     "frame": "task",
-    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "background": "miltenmagic:textures/block/teleportation_platform/teleportation_platform.png",
     "show_toast": true,
     "announce_to_chat": true,
     "hidden": false

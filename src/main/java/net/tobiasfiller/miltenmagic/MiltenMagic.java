@@ -23,6 +23,7 @@ public class MiltenMagic {
         EntityRegistry.ENTITY_TYPES.register(modBus);
         MobEffectRegistry.MOB_EFFECT.register(modBus);
         ParticleRegistry.PARTICLES.register(modBus);
+        RecipeRegistry.RECIPE_SERIALIZERS.register(modBus);
         SoundRegistry.SOUND_EVENTS.register(modBus);
         VillagerRegistry.POI_TYPES.register(modBus);
         VillagerRegistry.VILLAGER_PROFESSIONS.register(modBus);

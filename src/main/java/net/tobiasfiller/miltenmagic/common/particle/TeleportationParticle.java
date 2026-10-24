@@ -13,7 +13,7 @@ public class TeleportationParticle extends PortalParticle {
     private TeleportationParticle(ClientLevel world, double x, double y, double z, double motionX, double motionY, double motionZ){
         super(world, x, y, z, motionX, motionY, motionZ);
         this.quadSize = (float)((double)this.quadSize * 1.5D);
-        this.lifetime = (int)(Math.random() * 2.0D) + 30;
+        this.lifetime = (int)(Math.random() * 2.0D) + 50;
         float f = this.random.nextFloat() * 0.6F + 0.4F;
         this.rCol = f * 0.25F;
         this.gCol = f * 0.35F;

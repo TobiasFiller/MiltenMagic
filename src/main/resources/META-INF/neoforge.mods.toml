@@ -23,3 +23,11 @@ type="required"
 versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
+
+# Player Animation Library is only needed on the client: it renders the player model.
+[[dependencies.miltenmagic]]
+modId="player_animation_library"
+type="required"
+versionRange="${pal_version_range}"
+ordering="AFTER"
+side="CLIENT"

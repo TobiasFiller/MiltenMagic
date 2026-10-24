@@ -24,6 +24,7 @@ import net.tobiasfiller.miltenmagic.MiltenMagic;
 import net.tobiasfiller.miltenmagic.common.block.TableBlock;
 import net.tobiasfiller.miltenmagic.common.blockentity.StonePedestalBlockEntity;
 import net.tobiasfiller.miltenmagic.common.item.spellItems.FireArrowSpell;
+import net.tobiasfiller.miltenmagic.common.item.spellItems.TeleportationSpellItem;
 import net.tobiasfiller.miltenmagic.core.registry.BlockRegistry;
 import net.tobiasfiller.miltenmagic.core.registry.ItemRegistry;
 import net.tobiasfiller.miltenmagic.core.registry.VillagerRegistry;
@@ -298,7 +299,7 @@ public class MiltenMagicGameTests {
     //
     // doTeleportation/teleportDelayDelta live on the Item INSTANCE, which is a singleton
     // shared by every stack. inventoryTick() runs once per stack in the inventory, so the
-    // 200 tick countdown would tick N times per tick for N stacks -> wildly varying delay.
+    // 120 tick countdown would tick N times per tick for N stacks -> wildly varying delay.
     @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty")
     public static void teleportDelayIndependentOfStackCount(GameTestHelper helper) {
         int single = measureTeleportTicks(helper, 1);
@@ -310,7 +311,7 @@ public class MiltenMagicGameTests {
         helper.assertTrue(single == stacked,
                 "teleport delay depends on the number of scroll stacks in the inventory: "
                         + single + " ticks with 1 stack vs " + stacked + " ticks with 5");
-        helper.assertValueEqual(200, stacked, "expected a 200 tick delay");
+        helper.assertValueEqual(120, stacked, "expected a 120 tick (6s) delay");
         helper.succeed();
     }
 
@@ -361,6 +362,290 @@ public class MiltenMagicGameTests {
         return -1;
     }
 
+    // ---- Teleport must never arm itself from the offhand or after being unequipped ----
+
+    /**
+     * Vanilla tries the offhand item when the main hand does not consume a right click. A linked
+     * scroll in the offhand therefore used to arm the spell on every right click and later, once
+     * it ended up in the main hand, teleport without the player using it.
+     */
+    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty")
+    public static void teleportIsNotArmedFromOffhand(GameTestHelper helper) {
+        net.minecraft.server.level.ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack linked = new ItemStack(ItemRegistry.TELEPORTATION_SCROLL.get());
+
+        CompoundTag link = new CompoundTag();
+        link.putDouble("x", 0.0d);
+        link.putDouble("y", 64.0d);
+        link.putDouble("z", 0.0d);
+        link.putString("dim", helper.getLevel().dimension().location().toString());
+        linked.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.of(link));
+
+        player.setItemInHand(InteractionHand.OFF_HAND, linked);
+        linked.use(helper.getLevel(), player, InteractionHand.OFF_HAND);
+
+        helper.assertFalse(hasPendingTeleport(linked),
+                "using the scroll from the offhand must not arm the teleport");
+        helper.succeed();
+    }
+
+    /**
+     * Switching away used to only pause the countdown; selecting the scroll again later resumed
+     * it and the teleport fired without a new click.
+     */
+    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty", timeoutTicks = 600)
+    public static void teleportCancelsWhenScrollLeavesMainHand(GameTestHelper helper) {
+        net.minecraft.server.level.ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        BlockPos target = new BlockPos(3, 1, 3);
+        helper.setBlock(target, BlockRegistry.TELEPORTATION_PLATFORM_BLOCK.get());
+        BlockPos abs = helper.absolutePos(target);
+
+        ItemStack linked = new ItemStack(ItemRegistry.TELEPORTATION_SCROLL.get());
+        CompoundTag link = new CompoundTag();
+        link.putDouble("x", abs.getX());
+        link.putDouble("y", abs.getY());
+        link.putDouble("z", abs.getZ());
+        link.putString("dim", helper.getLevel().dimension().location().toString());
+        linked.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.of(link));
+
+        player.setPos(abs.getX() + 10.5, abs.getY(), abs.getZ() + 0.5);
+        player.setItemInHand(InteractionHand.MAIN_HAND, linked);
+        linked.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(hasPendingTeleport(linked), "the scroll should be armed after use()");
+
+        // Arming is fire-and-forget: the player right-clicks once and does not hold the button.
+        // The animation is driven by the armed flag on the stack (replicated by vanilla).
+        helper.assertFalse(player.isUsingItem(),
+                "arming the scroll must not require holding the use button");
+        helper.assertTrue(TeleportationSpellItem.isArmed(linked),
+                "the armed flag must be readable from the stack so clients can animate the channel");
+
+        double startX = player.getX();
+        double startZ = player.getZ();
+
+        // switch to another hotbar slot
+        player.getInventory().setItem(0, ItemStack.EMPTY);
+        player.getInventory().setItem(4, linked);
+        linked.inventoryTick(helper.getLevel(), player, 4, false);
+
+        helper.assertFalse(hasPendingTeleport(linked),
+                "switching away from the scroll must cancel the channel, not pause it");
+        helper.assertFalse(TeleportationSpellItem.isArmed(linked),
+                "cancelling the channel must clear the flag the animation reads");
+
+        // select it again much later: nothing may fire without a new click
+        for (int t = 0; t < 250; t++) {
+            linked.inventoryTick(helper.getLevel(), player, 4, false);
+        }
+        player.getInventory().setItem(0, linked);
+        player.getInventory().setItem(4, ItemStack.EMPTY);
+        for (int t = 0; t < 300; t++) {
+            linked.inventoryTick(helper.getLevel(), player, 0, true);
+        }
+
+        helper.assertTrue(Math.abs(player.getX() - startX) < 1 && Math.abs(player.getZ() - startZ) < 1,
+                "a canceled channel teleported the player later: now at "
+                        + player.getX() + "/" + player.getZ());
+
+        helper.succeed();
+    }
+
+    private static boolean hasPendingTeleport(ItemStack stack) {
+        net.minecraft.world.item.component.CustomData data =
+                stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+        return data != null && data.copyTag().getBoolean("tpPending");
+    }
+
+    // ---- Teleport events: Pre is cancelable, Post fires on arrival ----------------
+
+    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty", timeoutTicks = 600)
+    public static void teleportEventsFireAndPreCanCancel(GameTestHelper helper) {
+        net.minecraft.server.level.ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        BlockPos target = new BlockPos(3, 1, 3);
+
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                helper.setBlock(target.offset(x, 0, z),
+                        x == 0 && z == 0 ? Blocks.LAPIS_BLOCK : Blocks.CHISELED_STONE_BRICKS);
+            }
+        }
+        BlockPos abs = helper.absolutePos(target);
+
+        ItemStack linked = new ItemStack(ItemRegistry.TELEPORTATION_SCROLL.get());
+        player.setPos(abs.getX() + 10.5, abs.getY(), abs.getZ() + 0.5);
+        player.setItemInHand(InteractionHand.MAIN_HAND, linked);
+        helper.useBlock(target, player,
+                new BlockHitResult(Vec3.atCenterOf(abs), Direction.UP, abs, false));
+
+        double startX = player.getX();
+        double startZ = player.getZ();
+
+        // phase 1: a listener vetoes the teleport
+        java.util.concurrent.atomic.AtomicInteger preEvents = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.function.Consumer<net.tobiasfiller.miltenmagic.core.event.TeleportationEvent.Pre> veto =
+                event -> {
+                    preEvents.incrementAndGet();
+                    event.setCanceled(true);
+                };
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                net.tobiasfiller.miltenmagic.core.event.TeleportationEvent.Pre.class, veto);
+        try {
+            linked.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            for (int t = 0; t < 210; t++) {
+                linked.inventoryTick(helper.getLevel(), player, 0, true);
+            }
+
+            helper.assertValueEqual(1, preEvents.get(), "Pre event must be posted exactly once");
+            helper.assertTrue(Math.abs(player.getX() - startX) < 1 && Math.abs(player.getZ() - startZ) < 1,
+                    "a canceled Pre event must abort the teleport, player is at "
+                            + player.getX() + "/" + player.getZ());
+            helper.assertTrue(linked.getCount() == 1,
+                    "a canceled teleport must not consume the scroll, count=" + linked.getCount());
+        } finally {
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(veto);
+        }
+
+        // phase 2: no veto -> teleport happens and Post fires
+        java.util.concurrent.atomic.AtomicInteger postEvents = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.function.Consumer<net.tobiasfiller.miltenmagic.core.event.TeleportationEvent.Post> counter =
+                event -> postEvents.incrementAndGet();
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                net.tobiasfiller.miltenmagic.core.event.TeleportationEvent.Post.class, counter);
+        try {
+            linked.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            for (int t = 0; t < 210; t++) {
+                linked.inventoryTick(helper.getLevel(), player, 0, true);
+            }
+
+            helper.assertValueEqual(1, postEvents.get(), "Post event must be posted exactly once");
+            helper.assertTrue(Math.abs(player.getX() - (abs.getX() + 0.5)) < 3
+                            && Math.abs(player.getZ() - (abs.getZ() + 0.5)) < 3,
+                    "player did not arrive at the platform: " + player.getX() + "/" + player.getZ());
+        } finally {
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(counter);
+        }
+
+        helper.succeed();
+    }
+
+    // ---- First teleport must grant the advancement --------------------------------
+
+    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty")
+    public static void firstTeleportAwardsAdvancement(GameTestHelper helper) {
+        net.minecraft.server.level.ServerPlayer player = helper.makeMockServerPlayerInLevel();
+
+        net.minecraft.advancements.AdvancementHolder advancement = helper.getLevel().getServer()
+                .getAdvancements().get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+                        MiltenMagic.MOD_ID, "first_teleport"));
+        helper.assertTrue(advancement != null,
+                "data/miltenmagic/advancement/first_teleport.json is missing or failed to load");
+
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+                new net.tobiasfiller.miltenmagic.core.event.TeleportationEvent.Post(
+                        player,
+                        new ItemStack(ItemRegistry.TELEPORTATION_SCROLL.get()),
+                        player.position(),
+                        player.position(),
+                        helper.getLevel().dimension()));
+
+        helper.assertTrue(player.getAdvancements().getOrStartProgress(advancement).isDone(),
+                "a successful teleport must grant miltenmagic:first_teleport");
+        helper.succeed();
+    }
+
+    // ---- Data folders must use the 1.21 singular names ---------------------------
+
+    /**
+     * 1.21 renamed the datapack folders to singular (`recipe`, `loot_table`, `advancement`, ...).
+     * With the old plural names the files are silently ignored: recipes do not show up and broken
+     * blocks drop nothing. This test fails loudly if the folders regress.
+     */
+    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty")
+    public static void modDataFilesLoad(GameTestHelper helper) {
+        net.minecraft.server.MinecraftServer server = helper.getLevel().getServer();
+
+        net.minecraft.resources.ResourceLocation recipeId =
+                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MiltenMagic.MOD_ID, "oak_table");
+        helper.assertTrue(server.getRecipeManager().byKey(recipeId).isPresent(),
+                "data/miltenmagic/recipe/oak_table.json did not load (folder must be 'recipe' in 1.21)");
+
+        net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> lootId =
+                net.minecraft.resources.ResourceKey.create(
+                        net.minecraft.core.registries.Registries.LOOT_TABLE,
+                        net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MiltenMagic.MOD_ID, "blocks/oak_table"));
+        helper.assertTrue(server.reloadableRegistries().getLootTable(lootId)
+                        != net.minecraft.world.level.storage.loot.LootTable.EMPTY,
+                "data/miltenmagic/loot_table/blocks/oak_table.json did not load "
+                        + "(folder must be 'loot_table' in 1.21)");
+
+        helper.succeed();
+    }
+
+    // ---- Dyeing the teleportation scroll/rune -----------------------------------
+
+    /**
+     * The dye recipe must colour the item, keep the platform link and refuse ambiguous grids.
+     * The colour itself is a data component, so the recipe is fully testable headless.
+     */
+    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty")
+    public static void dyeSpellItemRecipe(GameTestHelper helper) {
+        net.minecraft.resources.ResourceLocation id = net.minecraft.resources.ResourceLocation
+                .fromNamespaceAndPath(MiltenMagic.MOD_ID, "dye_spell_item");
+        net.minecraft.world.item.crafting.CraftingRecipe recipe = helper.getLevel().getServer()
+                .getRecipeManager().byKey(id)
+                .map(net.minecraft.world.item.crafting.RecipeHolder::value)
+                .filter(net.minecraft.world.item.crafting.CraftingRecipe.class::isInstance)
+                .map(net.minecraft.world.item.crafting.CraftingRecipe.class::cast)
+                .orElse(null);
+        helper.assertTrue(recipe != null, "data/miltenmagic/recipe/dye_spell_item.json did not load");
+
+        ItemStack scroll = new ItemStack(ItemRegistry.TELEPORTATION_SCROLL.get());
+        CompoundTag link = new CompoundTag();
+        link.putInt("x", 42);
+        scroll.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                net.minecraft.world.item.component.CustomData.of(link));
+
+        net.minecraft.world.item.crafting.CraftingInput input =
+                net.minecraft.world.item.crafting.CraftingInput.of(2, 1,
+                        java.util.List.of(scroll, new ItemStack(Items.RED_DYE)));
+        helper.assertTrue(recipe.matches(input, helper.getLevel()), "scroll + dye must match the dye recipe");
+
+        ItemStack result = recipe.assemble(input, helper.getLevel().registryAccess());
+        net.minecraft.world.item.component.DyedItemColor dyed =
+                result.get(net.minecraft.core.component.DataComponents.DYED_COLOR);
+        helper.assertTrue(dyed != null, "a dyed scroll must carry the dyed_color component");
+        helper.assertValueEqual(net.minecraft.world.item.DyeColor.RED.getTextureDiffuseColor() & 0xFFFFFF,
+                dyed.rgb() & 0xFFFFFF, "a red dye must colour the scroll red");
+        helper.assertValueEqual(1, result.getCount(), "dyeing must not duplicate the item");
+
+        net.minecraft.world.item.component.CustomData data =
+                result.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+        helper.assertTrue(data != null && data.copyTag().getInt("x") == 42,
+                "dyeing must keep the platform link stored in CUSTOM_DATA");
+
+        net.minecraft.world.item.crafting.CraftingInput twoScrolls =
+                net.minecraft.world.item.crafting.CraftingInput.of(2, 1,
+                        java.util.List.of(scroll.copy(), scroll.copy()));
+        helper.assertTrue(!recipe.matches(twoScrolls, helper.getLevel()),
+                "two scrolls are not a dye recipe");
+
+        net.minecraft.world.item.crafting.CraftingInput twoDyes =
+                net.minecraft.world.item.crafting.CraftingInput.of(3, 1,
+                        java.util.List.of(scroll.copy(), new ItemStack(Items.RED_DYE), new ItemStack(Items.BLUE_DYE)));
+        helper.assertTrue(!recipe.matches(twoDyes, helper.getLevel()),
+                "two dyes must not be mixed into one colour");
+
+        net.minecraft.world.item.crafting.CraftingInput rune =
+                net.minecraft.world.item.crafting.CraftingInput.of(2, 1,
+                        java.util.List.of(new ItemStack(ItemRegistry.TELEPORTATION_RUNE.get()),
+                                new ItemStack(Items.LIME_DYE)));
+        helper.assertTrue(recipe.matches(rune, helper.getLevel()), "rune + dye must match the dye recipe");
+
+        helper.succeed();
+    }
+
     // ---- Bug 1: teleport scroll must link and then teleport ---------------------
 
     @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty", timeoutTicks = 600)
@@ -408,7 +693,7 @@ public class MiltenMagicGameTests {
             ItemStack same = player.getMainHandItem();
             same.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
 
-            // TeleportationSpellItem counts 200 ticks in inventoryTick(); drive it by hand so
+            // TeleportationSpellItem counts 120 ticks in inventoryTick(); drive it by hand so
             // the test does not depend on the gametest harness ticking the mock player
             for (int t = 0; t < 260; t++) {
                 same.inventoryTick(helper.getLevel(), player, 0, true);

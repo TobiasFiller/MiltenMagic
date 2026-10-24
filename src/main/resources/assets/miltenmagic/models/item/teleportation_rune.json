@@ -1,6 +1,7 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "miltenmagic:item/teleportation_rune"
+    "layer0": "miltenmagic:item/teleportation_rune",
+    "layer1": "miltenmagic:item/teleportation_rune_overlay"
   }
 }

@@ -42,6 +42,7 @@
   "message.miltenmagic.teleportation_spell.platform_destroyed": "§cTeleportation Platform has been destroyed§r",
   "message.miltenmagic.teleportation_spell.wrong_dimension": "§cWrong Dimension§r",
   "message.miltenmagic.teleportation_spell.invalid_platform": "§cInvalid Platform§r",
+  "message.miltenmagic.teleportation_spell.interrupted": "§cTeleportation interrupted§r",
   "message.miltenmagic.teleportation_spell.linked_at":"§aLinked at§r",
 
   "tooltip.miltenmagic.teleportation_spell.unlinked": "§8Unlinked§r",
@@ -56,5 +57,8 @@
   "tooltip.miltenmagic.spell.exp_cost": "§aExp cost§r",
 
   "sounds.miltenmagic.swampweed_smoking": "Smoking Swampweed",
-  "sounds.miltenmagic.fire_arrow": "Fire Arrow"
+  "sounds.miltenmagic.fire_arrow": "Fire Arrow",
+
+  "advancement.miltenmagic.first_teleport.title": "Milten Magic",
+  "advancement.miltenmagic.first_teleport.description": "Teleport with a Teleportation Scroll for the first time"
 }

@@ -49,10 +49,13 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     maven { url = 'https://maven.neoforged.net/releases' }
+    maven { url = 'https://repo.redlance.org/public' }
 }
 
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
+    // Player Animation Library (client-side animation library, PAL)
+    implementation "com.zigythebird.playeranim:PlayerAnimationLibNeo:${pal_version}"
 }
 
 tasks.named('processResources', ProcessResources).configure {
@@ -61,6 +64,7 @@ tasks.named('processResources', ProcessResources).configure {
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
             neo_version_range      : neo_version_range,
+            pal_version_range      : pal_version_range,
             mod_version            : mod_version
     ]
     inputs.properties replaceProperties

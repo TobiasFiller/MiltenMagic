@@ -1,7 +1,11 @@
 package net.tobiasfiller.miltenmagic.core.event;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -15,11 +19,14 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.event.village.WandererTradesEvent;
 import net.tobiasfiller.miltenmagic.MiltenMagic;
 import net.tobiasfiller.miltenmagic.common.item.helperClasses.BuffSpellItem;
+import net.tobiasfiller.miltenmagic.common.item.spellItems.TeleportationSpellItem;
 import net.tobiasfiller.miltenmagic.core.registry.ItemRegistry;
 import net.tobiasfiller.miltenmagic.core.registry.MobEffectRegistry;
 import net.tobiasfiller.miltenmagic.core.registry.VillagerRegistry;
@@ -29,6 +36,9 @@ import java.util.Optional;
 
 @EventBusSubscriber(modid = MiltenMagic.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class EventHandler {
+
+    private static final ResourceLocation FIRST_TELEPORT_ADVANCEMENT =
+            ResourceLocation.fromNamespaceAndPath(MiltenMagic.MOD_ID, "first_teleport");
 
     @SubscribeEvent
     public static void addVillagerTrades(final VillagerTradesEvent event) {
@@ -129,6 +139,41 @@ public class EventHandler {
             float armor = livingEntity.getArmorCoverPercentage();
             float f = armor < 0.25f? 0.2f : armor <= 0.5f? 0.5f : 1;
             event.setAmount(event.getAmount() * f);
+        }
+    }
+
+    /**
+     * A half-finished teleport channel must not survive death or logout. Otherwise the armed
+     * scroll keeps its countdown in the inventory and teleports the player on respawn / next
+     * login without a fresh click.
+     */
+    @SubscribeEvent
+    public static void onPlayerDeath(final LivingDeathEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            TeleportationSpellItem.cancelChannel(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogout(final PlayerEvent.PlayerLoggedOutEvent event) {
+        TeleportationSpellItem.cancelChannel(event.getEntity());
+    }
+
+    /**
+     * Awards the "first teleport" advancement. The advancement uses the
+     * {@code minecraft:impossible} trigger on purpose: there is no vanilla trigger for our spell,
+     * so this handler is the only thing that can grant it.
+     */
+    @SubscribeEvent
+    public static void onTeleportation(final TeleportationEvent.Post event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+        MinecraftServer server = player.serverLevel().getServer();
+        AdvancementHolder advancement = server.getAdvancements().get(FIRST_TELEPORT_ADVANCEMENT);
+        if (advancement != null) {
+            player.getAdvancements().award(advancement, "teleported");
         }
     }
 }
