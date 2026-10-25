@@ -28,7 +28,7 @@ interpretation when a request leaves room for one.
 
 **Milten Magic** (`miltenmagic`) is a Minecraft mod for **NeoForge 1.21.1** written in Java 21.
 It adds a Gothic-inspired magic system: spell scrolls, runes, a teleportation platform network,
-tables, a stone pedestal, swampweed, mob effects, and a "Fire Mage" villager profession.
+a stone pedestal, swampweed, mob effects, and a "Fire Mage" villager profession.
 
 - Mod ID: `miltenmagic`
 - Root package: `net.tobiasfiller.miltenmagic`

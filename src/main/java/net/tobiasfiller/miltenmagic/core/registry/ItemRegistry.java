@@ -76,35 +76,6 @@ public class ItemRegistry {
     public static final DeferredHolder<Item, Item> MAGICAL_LECTERN = ITEMS.register("magical_lectern", () -> new BlockItem(
             BlockRegistry.MAGICAL_LECTERN.get(), new Item.Properties()));
 
-    // -Tables
-
-    public static final DeferredHolder<Item, Item> TABLE = ITEMS.register("table", () -> new BlockItem(
-            BlockRegistry.TABLE.get(), new Item.Properties()));
-
-    public static final DeferredHolder<Item, Item> ACACIA_TABLE = ITEMS.register("acacia_table", () -> new BlockItem(
-            BlockRegistry.ACACIA_TABLE.get(), new Item.Properties()));
-
-    public static final DeferredHolder<Item, Item> BIRCH_TABLE = ITEMS.register("birch_table", () -> new BlockItem(
-            BlockRegistry.BIRCH_TABLE.get(), new Item.Properties()));
-
-    public static final DeferredHolder<Item, Item> CRIMSON_TABLE = ITEMS.register("crimson_table", () -> new BlockItem(
-            BlockRegistry.CRIMSON_TABLE.get(), new Item.Properties()));
-
-    public static final DeferredHolder<Item, Item> DARK_OAK_TABLE = ITEMS.register("dark_oak_table", () -> new BlockItem(
-            BlockRegistry.DARK_OAK_TABLE.get(), new Item.Properties()));
-
-    public static final DeferredHolder<Item, Item> JUNGLE_TABLE = ITEMS.register("jungle_table", () -> new BlockItem(
-            BlockRegistry.JUNGLE_TABLE.get(), new Item.Properties()));
-
-    public static final DeferredHolder<Item, Item> OAK_TABLE = ITEMS.register("oak_table", () -> new BlockItem(
-            BlockRegistry.OAK_TABLE.get(), new Item.Properties()));
-
-    public static final DeferredHolder<Item, Item> SPRUCE_TABLE = ITEMS.register("spruce_table", () -> new BlockItem(
-            BlockRegistry.SPRUCE_TABLE.get(), new Item.Properties()));
-
-    public static final DeferredHolder<Item, Item> WARPED_TABLE = ITEMS.register("warped_table", () -> new BlockItem(
-            BlockRegistry.WARPED_TABLE.get(), new Item.Properties()));
-
     public static final DeferredHolder<Item, Item> STONE_PEDESTAL = ITEMS.register("stone_pedestal", () -> new BlockItem(
             BlockRegistry.STONE_PEDESTAL.get(), new Item.Properties()));
 

@@ -43,15 +43,6 @@ public class CostumCreativeModeTab {
                 output.accept(ItemRegistry.MAGICAL_LECTERN.get());
                 output.accept(ItemRegistry.STONE_PEDESTAL.get());
                 output.accept(ItemRegistry.SWAMPWEED.get());
-                output.accept(ItemRegistry.TABLE.get());
-                output.accept(ItemRegistry.ACACIA_TABLE.get());
-                output.accept(ItemRegistry.BIRCH_TABLE.get());
-                output.accept(ItemRegistry.CRIMSON_TABLE.get());
-                output.accept(ItemRegistry.DARK_OAK_TABLE.get());
-                output.accept(ItemRegistry.JUNGLE_TABLE.get());
-                output.accept(ItemRegistry.OAK_TABLE.get());
-                output.accept(ItemRegistry.SPRUCE_TABLE.get());
-                output.accept(ItemRegistry.WARPED_TABLE.get());
             })
             .build());
 }

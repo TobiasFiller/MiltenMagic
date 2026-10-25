@@ -28,35 +28,6 @@ public class BlockRegistry {
                             .sound(SoundType.METAL)
                             .noOcclusion()));
 
-    // -Tables
-    public static final DeferredHolder<Block, Block> TABLE =
-            BLOCKS.register("table", () -> new TableBlock(tableProperties()));
-
-    public static final DeferredHolder<Block, Block> ACACIA_TABLE =
-            BLOCKS.register("acacia_table", () -> new TableBlock(tableProperties()));
-
-    public static final DeferredHolder<Block, Block> BIRCH_TABLE =
-            BLOCKS.register("birch_table", () -> new TableBlock(tableProperties()));
-
-    public static final DeferredHolder<Block, Block> CRIMSON_TABLE =
-            BLOCKS.register("crimson_table", () -> new TableBlock(tableProperties()));
-
-    public static final DeferredHolder<Block, Block> DARK_OAK_TABLE =
-            BLOCKS.register("dark_oak_table", () -> new TableBlock(tableProperties()));
-
-    public static final DeferredHolder<Block, Block> JUNGLE_TABLE =
-            BLOCKS.register("jungle_table", () -> new TableBlock(tableProperties()));
-
-    public static final DeferredHolder<Block, Block> OAK_TABLE =
-            BLOCKS.register("oak_table", () -> new TableBlock(tableProperties()));
-
-    public static final DeferredHolder<Block, Block> SPRUCE_TABLE =
-            BLOCKS.register("spruce_table", () -> new TableBlock(tableProperties()));
-
-    public static final DeferredHolder<Block, Block> WARPED_TABLE =
-            BLOCKS.register("warped_table", () -> new TableBlock(tableProperties()));
-
-
     public static final DeferredHolder<Block, Block> STONE_PEDESTAL =
             BLOCKS.register("stone_pedestal", () -> new StonePedestalBlock(
                     BlockBehaviour.Properties.of()
@@ -70,8 +41,4 @@ public class BlockRegistry {
                     .sound(SoundType.GRASS)
                     .randomTicks()
     ));
-
-    private static BlockBehaviour.Properties tableProperties() {
-        return BlockBehaviour.Properties.of().strength(2.0F, 3.0F).sound(SoundType.WOOD);
-    }
 }

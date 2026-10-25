@@ -21,7 +21,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.tobiasfiller.miltenmagic.MiltenMagic;
-import net.tobiasfiller.miltenmagic.common.block.TableBlock;
 import net.tobiasfiller.miltenmagic.common.blockentity.StonePedestalBlockEntity;
 import net.tobiasfiller.miltenmagic.common.item.spellItems.FireArrowSpell;
 import net.tobiasfiller.miltenmagic.common.item.spellItems.TeleportationSpellItem;
@@ -35,69 +34,6 @@ import net.tobiasfiller.miltenmagic.core.registry.VillagerRegistry;
  */
 @PrefixGameTestTemplate(false)
 public class MiltenMagicGameTests {
-
-    // ---- Bug 3: tables must connect to each other ---------------------------------
-
-    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty")
-    public static void tablesConnect(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.CREATIVE);
-        BlockPos first = new BlockPos(1, 1, 1);
-        BlockPos second = new BlockPos(1, 1, 2); // south of first
-
-        placeTable(helper, player, first);
-        placeTable(helper, player, second);
-
-        int firstSide = helper.getBlockState(first).getValue(TableBlock.SIDE);
-        int secondSide = helper.getBlockState(second).getValue(TableBlock.SIDE);
-
-        helper.assertTrue(firstSide != 0,
-                "first table should have been upgraded to a double table, SIDE=" + firstSide);
-        helper.assertTrue(secondSide != 0,
-                "second table should have been placed as a double table, SIDE=" + secondSide);
-        helper.assertTrue(firstSide != secondSide,
-                "the two table halves must use different SIDE values, got " + firstSide + " and " + secondSide);
-
-        helper.succeed();
-    }
-
-    private static void placeTable(GameTestHelper helper, Player player, BlockPos relative) {
-        // the player must click the TOP FACE of a solid block below, otherwise
-        // BlockPlaceContext treats the (air) block it hit as "replace me"
-        helper.setBlock(relative.below(), Blocks.STONE);
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.OAK_TABLE.get()));
-
-        BlockPos abs = helper.absolutePos(relative);
-        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(abs.below()), Direction.UP, abs.below(), false);
-        helper.useBlock(relative, player, hit);
-    }
-
-    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty")
-    public static void tablesConnectWhilePlayerStandsThere(GameTestHelper helper) {
-        // real players stand where they place; makeMockPlayer sits at (0,0,0) and
-        // therefore never triggers the isUnobstructed() early-out in getStateForPlacement
-        net.minecraft.server.level.ServerPlayer player = helper.makeMockServerPlayerInLevel();
-        BlockPos first = new BlockPos(1, 1, 1);
-        BlockPos second = new BlockPos(1, 1, 2);
-
-        helper.setBlock(first.below(), Blocks.STONE);
-        // stand next to the tables, not inside them (a real player never occupies the
-        // target position; the block below is what gets clicked)
-        player.setPos(helper.absolutePos(first).getX() - 1.5,
-                helper.absolutePos(first).getY(),
-                helper.absolutePos(first).getZ() + 0.5);
-
-        placeTable(helper, player, first);
-        placeTable(helper, player, second);
-
-        int firstSide = helper.getBlockState(first).getValue(TableBlock.SIDE);
-        int secondSide = helper.getBlockState(second).getValue(TableBlock.SIDE);
-
-        helper.assertTrue(firstSide != 0 && secondSide != 0,
-                "tables did not connect while the player occupied the spot (first SIDE=" + firstSide
-                        + ", second SIDE=" + secondSide + ")");
-
-        helper.succeed();
-    }
 
     // ---- Bug 4: stone pedestal must persist the item it holds ---------------------
 
@@ -618,17 +554,17 @@ public class MiltenMagicGameTests {
         net.minecraft.server.MinecraftServer server = helper.getLevel().getServer();
 
         net.minecraft.resources.ResourceLocation recipeId =
-                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MiltenMagic.MOD_ID, "oak_table");
+                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MiltenMagic.MOD_ID, "magical_lectern");
         helper.assertTrue(server.getRecipeManager().byKey(recipeId).isPresent(),
-                "data/miltenmagic/recipe/oak_table.json did not load (folder must be 'recipe' in 1.21)");
+                "data/miltenmagic/recipe/magical_lectern.json did not load (folder must be 'recipe' in 1.21)");
 
         net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> lootId =
                 net.minecraft.resources.ResourceKey.create(
                         net.minecraft.core.registries.Registries.LOOT_TABLE,
-                        net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MiltenMagic.MOD_ID, "blocks/oak_table"));
+                        net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MiltenMagic.MOD_ID, "blocks/magical_lectern"));
         helper.assertTrue(server.reloadableRegistries().getLootTable(lootId)
                         != net.minecraft.world.level.storage.loot.LootTable.EMPTY,
-                "data/miltenmagic/loot_table/blocks/oak_table.json did not load "
+                "data/miltenmagic/loot_table/blocks/magical_lectern.json did not load "
                         + "(folder must be 'loot_table' in 1.21)");
 
         helper.succeed();
