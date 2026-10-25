@@ -1,6 +1,7 @@
 package net.tobiasfiller.miltenmagic.common.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -57,6 +58,34 @@ public class StonePedestalBlock extends BaseEntityBlock {
             }
         }
         super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
+    }
+
+    @Override
+    public void neighborChanged(BlockState pState, Level pLevel, BlockPos pPos, Block pNeighborBlock, BlockPos pNeighborPos, boolean pMovedByPiston) {
+        super.neighborChanged(pState, pLevel, pPos, pNeighborBlock, pNeighborPos, pMovedByPiston);
+        // A block was placed/changed above the pedestal: the item no longer has room,
+        // so drop it on the ground (the pedestal itself stays placed).
+        if (!pLevel.isClientSide && isCovered(pLevel, pPos)) {
+            BlockEntity blockEntity = pLevel.getBlockEntity(pPos);
+            if (blockEntity instanceof StonePedestalBlockEntity stonePedestalBlockEntity) {
+                dropStoredItem(pLevel, pPos, stonePedestalBlockEntity);
+            }
+        }
+    }
+
+    /**
+     * @return true when any non-air block sits directly above the pedestal, i.e. the
+     *         pedestal has no room to display an item.
+     */
+    public static boolean isCovered(Level pLevel, BlockPos pPos) {
+        return !pLevel.getBlockState(pPos.above()).isAir();
+    }
+
+    private static void dropStoredItem(Level pLevel, BlockPos pPos, StonePedestalBlockEntity pBlockEntity) {
+        ItemStack stored = pBlockEntity.getAndRemoveItem();
+        if (!stored.isEmpty()) {
+            Containers.dropItemStack(pLevel, pPos.getX() + 0.5d, pPos.getY() + 1d, pPos.getZ() + 0.5d, stored);
+        }
     }
 
     @Override

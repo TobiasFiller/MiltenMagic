@@ -55,6 +55,12 @@ public class StonePedestalBlockEntity extends BlockEntity {
     }
 
     public boolean setItem(ItemStack stack){
+        // A block directly above the pedestal leaves no room for a displayed item.
+        // Guarded here (not only in the block) so the item-handler capability cannot
+        // sneak an item in either.
+        if (this.level != null && !this.level.getBlockState(this.worldPosition.above()).isAir()) {
+            return false;
+        }
         if (this.itemHandler.getStackInSlot(0).isEmpty()){
             // copy() keeps every DataComponent (CUSTOM_DATA holds the teleport link,
             // enchantments, custom names, damage, ...). Building a fresh

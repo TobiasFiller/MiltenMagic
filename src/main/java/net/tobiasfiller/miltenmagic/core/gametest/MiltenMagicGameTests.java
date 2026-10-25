@@ -158,6 +158,57 @@ public class MiltenMagicGameTests {
         helper.succeed();
     }
 
+    // ---- pedestal must not hold an item when a block sits directly above it ------
+
+    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty")
+    public static void pedestalRejectsItemWhenCovered(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, BlockRegistry.STONE_PEDESTAL.get());
+        helper.setBlock(pos.above(), Blocks.STONE);
+
+        Player player = helper.makeMockPlayer(GameType.CREATIVE);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.EMERALD, 3));
+
+        BlockPos abs = helper.absolutePos(pos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(abs), Direction.UP, abs, false);
+        BlockState pedestal = helper.getLevel().getBlockState(abs);
+        pedestal.useItemOn(new ItemStack(Items.EMERALD, 3), helper.getLevel(), player,
+                InteractionHand.MAIN_HAND, hit);
+
+        StonePedestalBlockEntity be = helper.getBlockEntity(pos);
+        helper.assertTrue(be.getItemHandler().getStackInSlot(0).isEmpty(),
+                "pedestal accepted an item although a block sits directly above it, got: "
+                        + be.getItemHandler().getStackInSlot(0));
+
+        helper.succeed();
+    }
+
+    @GameTest(templateNamespace = MiltenMagic.MOD_ID, template = "empty")
+    public static void pedestalDropsItemWhenCovered(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, BlockRegistry.STONE_PEDESTAL.get());
+        StonePedestalBlockEntity be = helper.getBlockEntity(pos);
+        helper.assertTrue(be.setItem(new ItemStack(Items.DIAMOND, 1)),
+                "pedestal refused the diamond before a block was placed above it");
+
+        // placing a block above must push the stored item out onto the ground
+        helper.setBlock(pos.above(), Blocks.STONE);
+
+        helper.assertTrue(be.getItemHandler().getStackInSlot(0).isEmpty(),
+                "pedestal kept the item although a block was placed directly above it");
+
+        BlockPos abs = helper.absolutePos(pos);
+        boolean foundDiamond = helper.getLevel()
+                .getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                        net.minecraft.world.phys.AABB.ofSize(Vec3.atCenterOf(abs), 6.0d, 6.0d, 6.0d))
+                .stream()
+                .anyMatch(entity -> entity.getItem().is(Items.DIAMOND));
+        helper.assertTrue(foundDiamond,
+                "the item stored on the covered pedestal was not dropped into the world");
+
+        helper.succeed();
+    }
+
     // ---- fire mage villager: can an idle villager ever acquire the job? ----------
     //
     // A villager only takes a job if there is a POI whose profession is acquirable.
